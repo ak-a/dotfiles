@@ -1,0 +1,54 @@
+#! /bin/bash
+
+# Environment manipulation functions
+
+_VarRemove()
+# VAR value - removes value from colon separated $VAR
+# removes value from environment VAR if it is there
+{
+    [ ${BASH_VERSINFO[0]} == 3 ] && return
+    local _IFS=$IFS
+    IFS=:
+    eval local current=(\$$1)
+    unset IFS
+    local new=(${current[@]##$2})
+    IFS=:
+    eval $1="${new[*]}"
+    export IFS=$_IFS
+}
+
+_VarAppend()
+# VAR value, VAR=$VAR:$value equivalent
+{
+    local var=$1
+    shift
+    local i
+    for i in "$@"
+    do
+	_VarRemove $var $i
+	eval export $var=\${$var:+\$$var\\:}$i
+    done
+}
+
+_VarPrepend()
+# VAR value, VAR=$value:$VAR equivalent
+{
+    local var=$1
+    shift
+    local i
+    for i in "$@"
+    do
+	_VarRemove $var $i
+	eval export $var=$i\${$var:+\\:\$$var}
+    done
+}
+
+PrependPath() { _VarPrepend PATH "$@"; }
+AppendPath() { _VarAppend PATH "$@"; }
+
+filterpath() {
+    local pathvar=$1
+    shift
+    eval export \$pathvar=$(eval echo \$$pathvar | tr ':' '\n' | grep "$@" | uniq | paste -sd :)
+    eval echo \$pathvar=\$$pathvar
+}

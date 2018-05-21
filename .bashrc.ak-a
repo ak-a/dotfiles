@@ -1,0 +1,42 @@
+#  base-files version 3.6-1
+
+export PATH=~/bin:$PATH
+
+# Shell Options
+# #############
+
+# Use case-insensitive filename globbing
+shopt -s nocaseglob
+shopt -s checkwinsize
+
+# Completion options
+# ##################
+
+# These completion tuning parameters change the default behavior of bash_completion:
+
+# Define to access remotely checked-out files over passwordless ssh for CVS
+# COMP_CVS_REMOTE=1
+
+# Define to avoid stripping description in --option=description of './configure --help'
+# COMP_CONFIGURE_HINTS=1
+
+# Define to avoid flattening internal contents of tar files
+# COMP_TAR_INTERNAL_PATHS=1
+
+export PATH=$PATH:/apps/asg/sw/bin
+
+case $- in
+   *i*)
+        :
+        ;;
+    *)
+        return
+        ;;
+esac
+for i in interactive cd prompt tmux kcg
+do
+    [ -f $HOME/.bash/$i ] && source $HOME/.bash/$i
+done
+
+source $HOME/.bash/history
+

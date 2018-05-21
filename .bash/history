@@ -1,0 +1,38 @@
+#!bash
+
+
+# Shell history stuff
+shopt -s cmdhist
+shopt -s histappend
+shopt -s histreedit
+shopt -s histverify
+
+HISTCONTROL=ignoredups:ignorespace:erasedups
+HISTSIZE=50000
+HISTFILESIZE=10
+HISTTIMEFORMAT="[%Y-%m-%dT%H:%M:%S] "
+
+export HISTDIR=$HOME/.histdir
+[ -d $HISTDIR ] || mkdir -p $HISTDIR
+
+HISTFILESIZE=500000
+HISTFILE=$HISTDIR/${HOSTNAME:-$(hostname -s)}.$(tty | cut -d/ -f4).$$
+HISTFILEMERGE=$HOME/.merged_history
+
+# assumes a 'history -a' in prompt_command and
+# needs a history -a $GLOBAL_HISTORY in .bash_logout
+prompt_history() {
+    history -a
+    if [[ -z ${_HISTORYFIRSTRUN} ]]; then
+        [[ -r $HISTFILEMERGE ]] && history -r $HISTFILEMERGE
+        while read _histfile
+        do
+            [[ $HISTDIR/$_histfile -nt $HISTFILEMERGE ]] && history -r $HISTDIR/$_histfile
+        done < <(ls -rt1 $HISTDIR)
+        #perl -nae ' next unless /#\d+/; chomp(); $_ .= " " . <>; print ' *.tty* | sort -n | perl -nae  ' print $F[0], "\n"; shift @F; print join(" ", @F), "\n"; '
+        #cat x| sort -n | perl -nae  ' shift @F; print $F[0], "\n"; shift @F; print join(" ", @F), "\n"; ' > $_newhistory
+        _HISTORYFIRSTRUN=true
+    else
+        history -n
+    fi
+}
