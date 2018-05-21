@@ -1,0 +1,241 @@
+#! bash
+#
+
+shopt -s cdspell checkwinsize cmdhist
+#if [ $(uname) != "SunOS" ]; then
+#    shopt -s dirspell
+#fi
+
+#
+# $HOME/.shell/_cd: cd function with history and other features # # Put something like this into your $HOME/.bashrc
+#   . $HOME/.shell/_cd
+#
+# or put something like this into your $HOME/.kshrc
+#   export FPATH=$HOME/.kshf
+#   alias cd=_cdh
+#   autoload _cdh
+#
+# Now you have a cd with these extra features:
+#   - List most recent dirs:	cd -l	    cd -l
+#   - Go to dir number N	cd -N	    cd -3
+#   - Go to previous dir	cd -	    cd -
+#   - Go to dir with SUBSTR in it   cd -SUBSTR	cd -rick
+#   - Go to /dir by first letter    cd +usncu
+#		a.k.a.	cd /usr/spool/news/comp/unix
+#   - Go to rel dir by letter	cd /usr/spool/news; cd ++abpe
+#
+# And a few other things you can figure out by reading this function # # Whenever the current directory changes, shell function set_prompt # will be run.  A default set_prompt is provided, but you can override # this by defining your version before you load this file.
+#
+# You can preload popular places into your CDHIST by listing them, # one directory per line, in file $HOME/.cdpreload #
+
+# Work around bash bugs...
+
+
+CDHIST[0]="$PWD"
+
+function _cdh
+{
+    typeset -i cdlen i
+    typeset t
+
+    if [ $# -eq 0 ]
+    then
+	set -- $HOME
+    fi
+
+    if [ "$CDHISTFILE" -a -r "$CDHISTFILE" ] # if directory history exists
+    then
+	typeset CDHIST
+	i=-1
+	while read -r t		# read directory history file
+	do
+	    CDHIST[i=i+1]=$t
+	done <$CDHISTFILE
+    fi
+
+    if [ "${CDHIST[0]}" != "$PWD" -a "$PWD" != "" ]
+    then
+	_cdins		    # insert $PWD into cd history
+    fi
+
+    cdlen=${#CDHIST[*]}		# number of elements in history
+
+    case "$@" in
+    -)			# cd to new dir
+	if [ "$OLDPWD" = "" ] && ((cdlen>1))
+	then
+	    echo "${CDHIST[1]}"
+	    _cdto "${CDHIST[1]}"
+	else
+	    _cdto "$@"
+	fi
+	;;
+    -l)			# print directory list
+	case "$BASH" in
+	*bash*)	;;
+	*) typeset -R3 num;;
+	esac
+	((i=cdlen))
+	while (((i=i-1)>=0))
+	do
+	    num=$i
+	    case "$BASH" in
+	    *bash*) printf "%3d %s\n" $num "${CDHIST[i]}";;
+	    *)	print "$num ${CDHIST[i]}";;
+	    esac
+	done
+	return 0
+	;;
+    -[0-9]|-[0-9][0-9])		# cd to dir in list
+	if (((i=${1#-})<cdlen))
+	then
+	    echo "${CDHIST[i]}"
+	    _cdto "${CDHIST[i]}"
+	else
+	    _cdto "$@"
+	fi
+	;;
+    -*)			# cd to matched dir in list
+	t=${1#-}
+	i=1
+	while ((i<cdlen))
+	do
+	    case ${CDHIST[i]} in
+	    *$t*)
+		echo "${CDHIST[i]}"
+		_cdto "${CDHIST[i]}"
+		break
+		;;
+	    esac
+	    ((i=i+1))
+	done
+	if ((i>=cdlen))
+	then
+	    _cdto "$@"
+	fi
+	;;
+    +*)
+	case "$@" in
+	++*)	rel="-e s/.//";;
+	+*) rel="";
+	esac
+	meta=`echo "$@" | sed -e 's/\+*//' -e 's/./\/&\*/g' $rel` \
+		2>/dev/null
+	expanded=`/bin/ls -d $meta`
+	set -- $expanded
+	if [ $# = 1 ]
+	then
+	    _cdto "$1"
+	else
+	    i=1
+	    while ((i <=$#))
+	    do
+		eval "thisone=\${$i}"
+		if [ -d "$thisone" ]
+		then
+		    echo "$thisone? \c "
+		    read yesno
+		    if [ "Q$yesno" = Qy ]
+		    then
+			_cdto "$thisone"
+			break
+		    fi
+		fi
+		((i=i+1))
+	    done
+	fi
+	;;
+    *)			# cd to new dir
+	_cdto "$@"
+	;;
+    esac
+
+    _cdins		    # insert $PWD into cd history
+
+    if [ "$CDHISTFILE" ]
+    then
+	cdlen=${#CDHIST[*]}	# number of elements in history
+
+	i=0
+	while ((i<cdlen))
+	do
+	    echo "${CDHIST[i]}"	# update directory history
+	    ((i=i+1))
+	done >$CDHISTFILE
+    fi
+#    set_prompt
+    return 0
+}
+
+function _cdins			# insert $PWD into cd history
+{			# meant to be called only by _cdh
+    typeset -i i
+
+    ((i=0))
+    while ((i<${#CDHIST[*]}))	    # see if dir is already in list
+    do
+	if [ "${CDHIST[$i]}" = "$PWD" ]
+	then
+	    break
+	fi
+	((i=i+1))
+    done
+
+    if ((i>200))		    # limit max size of list
+    then
+	i=200
+    fi
+
+    while (((i=i-1)>=0))	    # bump old dirs in list
+    do
+	CDHIST[i+1]=${CDHIST[i]}
+    done
+
+    CDHIST[0]=$PWD		# insert new directory in list
+}
+
+function _cdto
+{
+    # Run ".cdexit GOING-TO-DIR", but only if we are currently under $HOME
+    # case "$PWD" in
+    # ${HOME}*)	if [ -f .cdexit ]; then . ./.cdexit "$1"; fi;;
+    # esac
+
+    WASPWD="$PWD"
+    'cd' "$1"
+
+    # Run ".cdenter CAME-FROM-DIR", but only if we are currently under $HOME
+    # case "$PWD" in
+    # ${HOME}*)	if [ -f .cdenter ]; then . ./.cdenter "$WASPWD"; fi;;
+    # esac
+}
+
+#
+#   If the user hasn't defined set_prompt, define one for them
+#
+#if ! type set_prompt >/dev/null 2>&1; then
+#    function set_prompt
+#    {
+#	case "$TERM" in
+#	xterm*)	PS1='$ '; echo -e "\033]2;`uname -n`: $PWD\007\c";;
+#	*)  PS1="`uname -n`:\$PWD$ ";;
+#	esac
+#    }
+#fi
+
+#
+#   Make _cdh the new cd
+#
+alias cd=_cdh
+#set_prompt
+
+#
+#   If the user has a $HOME/.cdpreload, load some directories in CDHIST
+#
+if [ -f $HOME/.cdpreload ]; then
+    ((i=0))
+    while read dir extra; do
+	eval CDHIST[$i]=$dir
+	((i=i+1))
+    done < $HOME/.cdpreload
+fi

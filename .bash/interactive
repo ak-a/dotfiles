@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# this is only sourced if we are interactive, but will be sourced before other stuff
+# good place to put setup and environment stuff
+#
+[[ -f /etc/bash_completion ]] && . /etc/bash_completion
+
+# Environment setup
+# #################
+proxy() {
+    case "$1" in
+        on|ON)
+            export http_proxy=http://proxy.jpmchase.net:8080
+            export https_proxy=https://proxy.jpmchase.net:8443
+            export no_proxy="*.jpmchase.net"
+            ;;
+        off|OFF)
+            unset http_proxy
+            unset https_proxy
+            unset no_proxy
+            ;;
+        *)
+            echo "Usage: proxy on|off" >&2
+            return 1
+            ;;
+    esac
+}
+
+#[[ "$TERM" = xterm ]] && export TERM=xterm-256color
+
+ALIASES=/apps/asg/tools-prod.new/bldtools/bin/aliases.sh
+
+# History Options
+# ###############
+
+# Don't put duplicate lines in the history.
+export HISTCONTROL=ignoredups
+
+# Ignore some controlling instructions
+export HISTIGNORE="[   ]*:&:bg:fg:exit:history"
+
+# cd history setting
+export CDHISTFILE=$HOME/.cdhistory
+
+#
+
+# Aliases
+# #######
+
+# Athena Aliases
+[ -r $ALIASES ] && . $ALIASES
+
+alias grep='grep --color'                     # show differences in colour
+alias ls='ls -h --color=tty'                 # classify files in colour
+alias proxyon='proxy on'
+alias proxyoff='proxy off'
+
+# Functions
+# #########
+
+function settitle() { echo -n "^[]2;$@^G^[]1;$@^G"; }
+function vim() {
+    case "${OSV}" in
+        *rhel5*)
+            DISPLAY= /usr/bin/vim "$@";;
+        *)
+            DISPLAY= command vim "$@";;
+    esac
+}
+
+git()
+{
+    command git "$@" 2> >( grep -v 'no version information' )
+}

@@ -1,0 +1,261 @@
+#! /bin/bash
+#
+# Prompt command stuff
+
+: ${HOSTNAME:=$(hostname)}
+
+# if we are a sub-shell we might have a different TERM, so record what we were
+# later on we only generate the colours if we have a new term or haven't
+# generated them before
+#set -x
+if [ -n ${_tput_term+x} ]; then
+    _old_tput_term=$_tput_term
+fi
+
+# make $TERM sane in our environment
+_tput_term=$TERM
+if [ -n "$COLORTERM" ]; then
+    _tput_term=$COLORTERM
+elif [ "$TERM" == "screen-256color" ]; then
+    _tput_term=xterm-256color
+fi
+
+#echo _tput_term=$_tput_term
+
+function colourES()
+{
+    local colour
+
+    colour=$(rgbto256 $1)
+
+    if [[ -n ${colour} ]];then
+        tput ${2:-setaf} ${colour}
+    else
+        echo "No such colour $1" >&2
+    fi
+}
+
+function quotedcolorES()
+{
+    local uqc=$(colourES $1 $2)
+    [[ ${#uqc} == 0 ]] && return
+    echo "\[$uqc\]"
+}
+
+# a bit complicated - if we have a colour we don't re-generate
+# makes subshells quicker to start, but...
+# if we have a new TERM then we should re-generate just in case.
+unquotedcolour()
+{
+    eval export $1=\"\$\(colourES $2 $3\)\"   
+}
+
+quotedcolour()
+{
+    [ -z "${_old_tput_term+x}" ] && eval unset $1
+    eval export $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
+}
+
+set_inuse() {
+    if [[ $_inuse_dir != $PWD ]]; then
+        inuse=$(($(stat -fc '(%b-%a)*100/%b' .)))
+        if [[ $inuse -gt 80 ]]; then
+            inusec=${_uq_fg_red3}
+        elif [[ $inuse -gt 50 ]]; then
+            inusec=${_uq_fg_sandybrown}
+        else
+            inusec=${_uq_fg_darkgreen}
+        fi
+    fi
+}
+
+print_prompt() {
+    set_inuse
+    printf "${_defc}${_uq_fg_red3}: $_PROMPT_EXIT"
+    printf "${_defc} ${_uq_fg_red4}${_tmux_ps} ${_shell_count} ${_uq_fg_purple}"
+    printf "${_defc}${_uq_fg_sandybrown}${_PROMPT_CS} "
+    printf "T$(date +%H:%M:%S) ${inusec}%3d%% ${_defc}${_PROMPT_PATH} ; " ${inuse}
+    printf "%*s$NO_COLOUR_UQ\n" ${_nspaces:-0} " "
+}
+
+tmux_prompt() {
+    if [ -n "$TMUX" ]; then
+        _tmux_ps=$(tmux list-pane -F "#{session_name}:#{window_index}:#{pane_index}:#{pane_active}" |
+                    awk -F: ' $4 == 1 { session=$1 ":" $2; pindex=$3; } 
+                            END     {
+                                        if (NR > 1) {
+                                            printf "%s:%d", session, pindex;
+                                        } else {
+                                            printf session; }
+                                    }')
+    fi
+}
+
+
+# get prompt without colours, if we have done this we are golden
+: ${_default_prompt:=$(_PROMPT_PATH="" _nspaces=0 print_prompt | perl -p -e 'chomp; s/\033\[.*?m//g')}
+export _default_prompt
+# date=8, exit=1, shell_count=2
+let _prompt_min_length=${#_default_prompt}+25
+
+# create my fg and bg colours - searches rgb.txt for
+# the colour and converts to ANSI color cube that is
+# 6x6x6 (dec not bits)
+setab=
+for g in f b
+do
+    for c in red yellow steelblue black green cyan purple white \
+        red3 darkgreen grey93 sandybrown grey42
+    do
+        quotedcolour _${g}g_$c $c $setab
+        unquotedcolour _uq_${g}g_$c $c $setab
+    done
+    setab=setab
+done
+
+NO_COLOUR_UQ="$(tput sgr0)"
+#NO_COLOUR_UQ="\033[0m"
+NO_COLOUR="\[${NO_COLOUR_UQ}\]"
+#REVERSE="\[$(tput rev)\]"
+
+case "$USER" in
+    andrew)
+        _user_colour="$_fg_darkgreen"
+        ;;
+    root)
+        _user_color="$_bg_yellow$_fg_red"
+        ;;
+    *)
+        _user_colour="$_bg_steelblue$_fg_cyan"
+        ;;
+esac
+
+unquotedcolour _PROMPT_EXIT_OK_FG   green3          # green
+unquotedcolour _PROMPT_EXIT_BAD_FG Khaki1          # yellow
+unquotedcolour _PROMPT_EXIT_BAD_BG red1 setab    # red
+
+_PROMPT_EXIT_OK=${_PROMPT_EXIT_OK_FG}$(printf '\342\234\223')
+_PROMPT_EXIT_BAD="$_PROMPT_EXIT_BAD_BG$_PROMPT_EXIT_BAD_FG"$(printf '\342\234\227')
+
+case $SHLVL in
+    1)
+        [[ -n $DISPLAY ]] && {
+            export DISPLAYFILE=$HOME/.display.$$
+            echo export DISPLAY=$DISPLAY > $DISPLAYFILE
+        }
+        ;;
+    *)
+        if [[ -z $DISPLAY ]]; then
+            if [[ -n $DISPLAYFILE ]]; then
+                source $DISPLAYFILE
+            else
+                while true;
+                do
+                    read _ppid _user < <(ps -o ppid= -o user= -p ${_ppid:-$$})
+                    [[ $_user != $USER ]] && break
+                    [[ -r $HOME/.display.$_ppid ]] && { source $HOME/.display.$_ppid; break; }
+                    [[ $_ppid == 1 ]] && break
+                done
+            fi
+        fi
+        ;;
+esac
+
+_defc="${NO_COLOUR_UQ}${_uq_93}${_uq_fg_black}"
+if [[ $SHLVL -eq 0 ]]; then
+    _shell_count="${_uq_bg_black}${_uq_fg_yellow}%%0${_defc}"
+else
+    _shell_count="${_uq_fg_black}%%$((SHLVL-1))"
+fi
+
+# single line prompt, the first line is done by the timer, so we don't repeat
+# for tab completion etc.
+export PS1="${_bg_steelblue}${_fg_white}:${NO_COLOUR} \
+$_user_colour\u$NO_COLOUR\
+$_fg_purple@\
+$_fg_steelblue$HOSTNAME \
+$_bg_steelblue$_fg_white;$NO_COLOUR "
+
+tmux_prompt
+
+#$_bg_steelblue$_fg_white;$NO_COLOUR ${_bg_grey42}${_fg_white}"
+
+function prompt_command_timer()
+{
+    local _exit_status=$?
+    let _command_duration=SECONDS-_PROMPT_TIMER
+    prompt_history
+    _PROMPT_CS=$(printf "%02d:%02d:%02d" $(($_command_duration/60/60)) $(($_command_duration/60%60)) $(($_command_duration%60)))
+    if [ $_exit_status == 0 ]; then
+        _PROMPT_EXIT=$_PROMPT_EXIT_OK$(printf "%3d" $_exit_status)
+    else
+        _PROMPT_EXIT=$_PROMPT_EXIT_BAD$(printf "%3d" $_exit_status)
+    fi
+
+    # TODO - optimise for when things are the same - columns, path, exit code
+#    if [ "$_LAST_PROMPT_PATH" != "$PWD$COLUMNS" ];then
+
+	# substitue ~ for $HOME (using bash for speed)
+	# have to do in two goes because Solaris bash doesn't like
+	# _home_sub bit inside the _PWD
+	local _home_sub=${HOME//\//\\/}
+	local _PWD=${PWD/#$_home_sub/\~}
+
+#	_LAST_PROMPT_PATH="$PWD$COLUMNS"
+	local _maxpath
+        # make sure we can do the ..., so hence the 3
+        let _maxpath=COLUMNS-_prompt_min_length-3
+	if [ $_maxpath -lt ${#_PWD} ] ; then
+            local _offset
+	    _offset=${#_PWD}-_maxpath
+	    _PROMPT_PATH="..."${_PWD:_offset:_maxpath}
+	else
+	    _PROMPT_PATH="$_PWD"
+	fi
+        if [[ ${#NO_COLOUR} -gt 0 ]]; then
+            local prompt_length=$(( ${#_PROMPT_PATH}+$_prompt_min_length ))
+            let _nspaces=COLUMNS-prompt_length+1
+        fi
+#    fi
+    
+    #local _dokinit
+    #_dokinit="$HOME/.do-kinit-${HOSTNAME}"
+    #if [ -r $_dokinit ]; then
+        #local _krb5=$(cat $_dokinit)
+        #kinit -c $_krb5
+        #klist -s -c $_krb5 && rm -f $_dokinit
+    #fi
+    unset _PROMPT_TIMER
+
+    print_prompt
+}
+
+command_timer_start()
+{
+    _PROMPT_TIMER=${_PROMPT_TIMER:-$SECONDS}
+    if [[ -z $DISPLAY ]]; then
+        if [[ -n $DISPLAYFILE ]]; then
+            source $DISPLAYFILE
+        fi
+    fi
+    #printf "$NO_COLOUR_UQ"
+}
+
+typeset -xf prompt_command_timer command_timer_start 
+export PROMPT_COMMAND=prompt_command_timer
+trap 'command_timer_start' DEBUG
+
+sudo()
+{
+    local _ps1="$PS1"
+    export PS1="$_fg_red: $_bg_red$_fg_yellow### \\u ###$NO_COLOUR \
+$_fg_purple@\
+$_fg_steelblue$HOSTNAME\
+$_fg_steelblue \w ;\n\
+ $_bg_yellow$_fg_steelblue:;$NO_COLOUR "
+
+    command sudo "$@"
+    export PS1="$_ps1"
+}
+
+set +x

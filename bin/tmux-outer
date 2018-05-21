@@ -1,0 +1,67 @@
+#!/bin/bash 
+
+me=$(basename $0)
+. $(dirname $0)/tmux-window
+
+
+[ -n "$TMUX" ] && error "Inside tmux - can't start outer"
+if [[ -x $HOME/bin/tmux ]]; then
+    export TMUXC="$HOME/bin/tmux"
+elif [[ -x /usr/bin/tmux ]]; then
+    export TMUXC="/usr/bin/tmux"
+else
+    exit 1
+fi
+export TMUX_SOCKET="-L outer"
+TMUX_ATTACHED="$($TMUXC $TMUX_SOCKET list-session -F "#{session_attached}")"
+if [ -z "$TMUX_ATTACHED" ]; then
+    # no session so we will create a new one
+    # make sure out kerberos ticket is ok and set specific
+    # helps avoid tickets being reaped if our starting shell
+    # logs our
+    if false; then
+        message 1 No session, create new kerberos ticket
+        NEW_TICKET_FILE=/tmp/krb5cc_$(id -u)_tmux-outer
+        . $HOME/.bash/krb5
+    fi
+
+# we have a specific tmux configuration for the outer
+# to set control key to Ctrl-Z (rather than my main favourite)
+# of Ctrl-A - which is used for the inner
+#    $TMUXC $TMUX_SOCKET -2 -f ~/.tmux.outer start || error "Can't start tmux server"
+# start a new session - create a temporary window so things stay open for me
+    message 1 Create new tmux session
+    $TMUXC $TMUX_SOCKET -2 -f ~/.tmux.outer new-session -d -s outer -n unify
+    #TEMP_SESSION_WINDOW=$($TMUXC $TMUX_SOCKET list-windows -F "#{session_name}:#{window_index}")
+# move the temporary window to the end :-)
+    #$TMUXC $TMUX_SOCKET move-window -s $TEMP_SESSION_WINDOW -t ${TEMP_SESSION_WINDOW/:*/}:99
+fi
+
+# Create or re-connect the default inner sessions
+let x=1
+for i in ln @ny project
+do
+    tmux_window $i outer:$x "tmux-inner $i"
+    let x=x+1
+done
+# list any other inner sessions and connect any not attached
+tmux -L default list-s -F '#{session_attached} #{session_name}' | awk ' $1 ~ /0/ { print $2 } ' | while read session
+do
+    message 1 Connect outer to session $session
+    tmux_window $session outer:$x "tmux-inner $session"
+    let x=x+1
+done
+tmux_window man outer:9
+# outer:0 is a unify window
+tmux_window unify outer:0
+# no need to select 0
+#$TMUXC $TMUX_SOCKET select-window -touter:0
+tmux move-window -r
+tmux move-window -s man -t :9
+
+if [ "$TMUX_ATTACHED" == 1 -a "$1" != force ]; then
+    echo "Won't re-attached unless force option given" >&2
+    exit 1
+fi
+
+exec $TMUXC $TMUX_SOCKET -2 attach-session -t outer

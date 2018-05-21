@@ -1,0 +1,57 @@
+#! /bin/bash
+
+declare -f mstat
+if [ "$(uname)" = "Linux" ]; then
+    mstat() { stat -c %Y "$1"; }
+else
+    mstat() { perl -e "print ((stat('$1'))[9])"; }
+fi
+
+gvim()
+{
+    local remote
+    local servername
+    if [ -n "$TMUX" ]; then
+        servername=$(tmux -L outer list-windows -F '#{window_active} #{window_name}' 2>/dev/null | awk ' $1 == 1 { printf "%s", $2 } ')
+        command gvim --servername ${servername:-tmux} --remote "$@" 2>/dev/null
+    else
+        if [ -n "$(command gvim --serverlist)" ]; then
+            remote=--remote
+        fi
+        command gvim $remote "$@" 2>/dev/null
+    fi
+}
+
+function every { 
+    awk "BEGIN{every=0;} {if ((every++ % $1) == 0) {print}}"
+}
+
+
+ln2cp()
+{
+# remove symbolic linked files and replace with a copy
+    for file in "$@"
+    do
+	if [[ -h $file ]]; then
+	    echo $file is symbolic link, replacing with a copy
+	    cp $file $file.$$ &&
+		rm -f $file &&
+		mv $file.$$ $file
+	else
+	    echo $file is not a symbolic link, ignoring
+	fi
+    done
+}
+
+bashrc()
+{
+    if [[ -z $1 ]]; then
+	vim ~/.bashrc
+    elif [[ -f ~/.bash/$1 ]]; then
+	vim ~/.bash/$1
+    else
+	echo "bashrc: what did you mean by '$1'?" >&2
+    fi
+    exec $SHELL
+}
+

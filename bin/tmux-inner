@@ -1,0 +1,90 @@
+#!/bin/bash 
+
+# tmux-inner $session
+# - session is a mnemonic for what sort of thing to run:
+#   @host - run a tmux on the remote server, this is not a single windo
+#	    but a full session
+#   bruce*|zod*|ursa*|secserv-* - known host names so it will re-exec
+#	    with @session to do the right thing
+#   support - spawn a shell and a "man" window on id:9
+#   compile - connect to the "useful" compile hosts, one in each window
+#	    lapis, obsidian, hive (also runs one shell locally)
+#
+# designed to be run inside of a newly created tmux -L outer window
+
+
+[ -z "$TMUX" ] && { echo Not in tmux, expect to be inside tmux; exit 1; }
+[ -z "$1" ] && { echo No name specified, exit time; exit 1; }
+
+. $(dirname $0)/tmux-window
+
+session=${1//./-}
+
+: ${TMUXC:="$HOME/bin/tmux"}
+[[ -x $TMUXC ]] || TMUXC=$HOME/bin/tmux
+# exported because tmux_window will have a peek
+export TMUXC
+export TMUX_SOCKET="-L default"
+
+# figure out if we are logging onto a remote server to do stuff
+set -x
+case $session in
+    vili*|borr*|odin*)
+	exec $0 "@$session"
+	;;
+    @*.loc)
+	# remove the @ to get the server to connect to
+	SERVER=${1:1}
+	ssh -t $SERVER ${TMUXC/\/users} $TMUX_SOCKET has-session -t =$session &&
+	    exec ssh -t $SERVER ${TMUXC/\/users} -2 $TMUX_SOCKET attach-session -t =$session
+	;;
+    @*)
+	# remove the @ to get the server to connect to
+	SERVER=${1:1}
+	ssh -t $SERVER $TMUXC $TMUX_SOCKET has-session -t =$session &&
+	    exec ssh -t $SERVER $TMUXC $TMUX_SOCKET attach-session -t =$session
+	;;
+esac
+
+# We might be trying to start tmux now, so TMUX must be unset
+unset TMUX
+
+# if we don't have a remote server, then try and attach as we did above
+[ -z "$SERVER" ] &&
+    $TMUXC $TMUX_SOCKET has-session -t =$session &&
+    exec $TMUXC $TMUX_SOCKET attach-session -t =$session
+
+message 2 Create new tmux session $session
+
+# if we have a specific tmux configuration for this session
+# we add to the args
+TMUX_CONF=$HOME/.tmux.$session
+[ -f $TMUX_CONF ] && TMUXC="$TMUXC -f $TMUX_CONF"
+
+# We are here because we don't have a session to attach to (remote or local)
+# if remote, do everything though ssh
+[ -n "$SERVER" ] && TMUXC="ssh -t $SERVER $TMUXC"
+
+if ! $TMUXC $TMUX_SOCKET -2 new-session -d -s "$session"; then
+    message 60 "Unable to create new session"
+    exit 1
+fi
+# what do we start in this inner thingy
+case $session in
+    support)
+        create_missing_tmux_window man
+        ;;
+
+    startup)
+        for host in vili borr odin vali
+        do 
+            tmux_window S:$host $session "tmux-startup $host"
+        done
+        #$TMUXC $TMUX_SOCKET select-window -t startup:0
+        message 2 "startup windows created"
+        ;;
+
+esac || message 5 Background session setup failed
+exec $TMUXC $TMUX_SOCKET -2 attach-session -t =$session
+
+sleep 60
