@@ -4,7 +4,7 @@
 
 tmux_if_started()   # window name, command
 {
-    [ -n "$TMUX" ] && { 
+    [[ -n "$TMUX" ]] && { 
 	local target
 	target=$(tmux new-window -P -n $1 "$2")
 	tmux set-window-option -t ${target//.*/} remain-on-exit on > /dev/null 2>&1
@@ -16,22 +16,21 @@ tmux_if_started()   # window name, command
 ssh()
 {
     local _cwn
-    _cwn=$(tmux list-w -F "#{window_active} #{window_name}" | sed -n '/^1/s/^..//p')
-    tmux rename-window @${!#}
+    local LC_ALL=C
+    [[ -n $TMUX ]] && {
+        _cwn=$(tmux list-w -F "#{window_active} #{window_name}" | sed -n '/^1/s/^..//p')
+        tmux rename-window @${!#}
+    }
     command ssh "$@"
-    tmux set-window-option automatic-rename on > /dev/null
+    [[ -n $TMUX ]] && {
+        tmux set-window-option automatic-rename on > /dev/null
+    }
 }
 
 sssh()
 {
     [ -z "$1" ] && { echo "Huh?"; echo "Perhaps you forgot where you were ssh-ing to?"; return 1; }
     tmux_if_started @${1//.*/} "ssh $1"
-}
-
-pmssh()
-{
-    [ -z "$1" ] && { echo "Huh?"; echo "Perhaps you forgot where you were ssh-ing to?"; return 1; }
-    tmux_if_started procman@${1//.*/} "doproc ssh $1"
 }
 
 command2file()
