@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd $(dirname $0)
+find . -type f | egrep -v -e "^/(\.git|README.md|LICENSE)" | (cd ..; cut -c3- | xargs -I '{}' ln -sf ~/dotfiles/{} {})
