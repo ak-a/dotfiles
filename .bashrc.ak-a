@@ -31,10 +31,12 @@ case $- in
         return
         ;;
 esac
-for i in env_manip misc_functions interactive cd history prompt tmux
+export CDHISTFILE=~/.cdhistory
+declare -a bashrcs
+bashrcs=( env_manip misc_functions fb cd tmux interactive prompt history fb )
+for i in "${bashrcs[@]}"
 do
-    [ -f $HOME/.bash/$i ] && source $HOME/.bash/$i
+    [[ -f $HOME/.bash/$i ]] && source "$HOME/.bash/$i"
 done
 
-source $HOME/.bash/history
 
