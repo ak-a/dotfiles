@@ -57,7 +57,10 @@ quotedcolour()
 }
 
 set_inuse() {
-    if [[ $_inuse_dir != $PWD ]]; then
+    if [[ $PWD =~ ^/(proc|dev) ]]; then
+        inuse='0'
+        inusec=${_uq_fg_white}
+    else
         inuse=$(($(stat -fc '(%b-%a)*100/%b' .)))
         if [[ $inuse -gt 80 ]]; then
             inusec=${_uq_fg_red3}
@@ -70,7 +73,10 @@ set_inuse() {
 }
 
 print_prompt() {
-    set_inuse
+    if [[ $_inuse_dir != $PWD ]]; then
+      _inuse_dir=$PWD
+      set_inuse
+    fi
     printf "${_defc}${_uq_fg_red3}: $_PROMPT_EXIT"
     printf "${_defc} ${_uq_fg_red4}${_tmux_ps} ${_shell_count} ${_uq_fg_purple}"
     printf "${_defc}${_uq_fg_sandybrown}${_PROMPT_CS} "
@@ -91,7 +97,6 @@ tmux_prompt() {
     fi
 }
 
-
 # get prompt without colours, if we have done this we are golden
 : ${_default_prompt:=$(_PROMPT_PATH="" _nspaces=0 print_prompt | perl -p -e 'chomp; s/\033\[.*?m//g')}
 export _default_prompt
@@ -101,17 +106,19 @@ let _prompt_min_length=${#_default_prompt}+25
 # create my fg and bg colours - searches rgb.txt for
 # the colour and converts to ANSI color cube that is
 # 6x6x6 (dec not bits)
-setab=
-for g in f b
-do
-    for c in red yellow steelblue black green cyan purple white \
-        red3 darkgreen grey93 sandybrown grey42
+if [[ -n $TERM ]]; then 
+    setab=
+    for g in f b
     do
-        quotedcolour _${g}g_$c $c $setab
-        unquotedcolour _uq_${g}g_$c $c $setab
+        for c in red yellow steelblue black green cyan purple white \
+            red3 darkgreen grey93 sandybrown grey42
+        do
+            quotedcolour _${g}g_$c $c $setab
+            unquotedcolour _uq_${g}g_$c $c $setab
+        done
+        setab=setab
     done
-    setab=setab
-done
+  fi
 
 NO_COLOUR_UQ="$(tput sgr0)"
 #NO_COLOUR_UQ="\033[0m"
@@ -119,7 +126,7 @@ NO_COLOUR="\[${NO_COLOUR_UQ}\]"
 #REVERSE="\[$(tput rev)\]"
 
 case "$USER" in
-    andrew)
+    andrew|aka4)
         _user_colour="$_fg_darkgreen"
         ;;
     root)
@@ -134,8 +141,20 @@ unquotedcolour _PROMPT_EXIT_OK_FG   green3          # green
 unquotedcolour _PROMPT_EXIT_BAD_FG Khaki1          # yellow
 unquotedcolour _PROMPT_EXIT_BAD_BG red1 setab    # red
 
-_PROMPT_EXIT_OK=${_PROMPT_EXIT_OK_FG}$(printf '\342\234\223')
-_PROMPT_EXIT_BAD="$_PROMPT_EXIT_BAD_BG$_PROMPT_EXIT_BAD_FG"$(printf '\342\234\227')
+# utf-8 commented out
+shopt -s nocasematch
+if [[ ${LC_ALL/-} = "EN_GB.UTF8" ]]; then
+    _cross=$(printf '\342\234\227')
+    _tick=$(printf '\342\234\223')
+else
+    _cross=$(printf '\000\xd7')
+    _tick=$(printf '\000\xd8')
+fi
+shopt -u nocasematch
+
+
+_PROMPT_EXIT_OK="${_PROMPT_EXIT_OK_FG}   ${_tick}"
+_PROMPT_EXIT_BAD="$_PROMPT_EXIT_BAD_BG$_PROMPT_EXIT_BAD_FG${_cross}"
 
 case $SHLVL in
     1)
@@ -228,6 +247,7 @@ function prompt_command_timer()
     unset _PROMPT_TIMER
 
     print_prompt
+    return $_exit_status
 }
 
 command_timer_start()
