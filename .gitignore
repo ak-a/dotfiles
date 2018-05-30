@@ -5,3 +5,5 @@
 .vim/allbundles/YouCompleteMe/python/ycm/tests/client/messages_request_test.py
 .vim/allbundles/YouCompleteMe/python/ycm/tests/mock_utils.py
 .vim/allbundles/YouCompleteMe/python/ycm/tests/testdata
+.vim/biggrep.vim
+.tmux/plugins/tmux-*
