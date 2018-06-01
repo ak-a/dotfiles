@@ -39,4 +39,4 @@ do
     [[ -f $HOME/.bash/$i ]] && source "$HOME/.bash/$i"
 done
 
-
+export PATH=$(echo $PATH | awk -vRS=: -vORS=: '!a[$0]++')
