@@ -9,6 +9,7 @@ set bg=light
 " for scroll-wheel
 if &term =~ "screen"         
     set mouse=a
+    set ttymouse=xterm2
 endif
 
 "set viminfo='1000,f1,<200,/100,:100,@100,%
