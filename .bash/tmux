@@ -15,7 +15,8 @@ tmux_if_started()   # window name, command
 
 _tmux_temp_window_name() {  # name command
     local LC_ALL=C
-    local _nwn=$!; shift
+    local _nwn=$1
+    shift
     [[ -n $TMUX ]] && {
         tmux rename-window "${_nwn}"
     }
@@ -27,14 +28,7 @@ _tmux_temp_window_name() {  # name command
 
 ssh()
 {
-    local LC_ALL=C
-    [[ -n $TMUX ]] && {
-        tmux rename-window "@${!#}"
-    }
-    command ssh "$@"
-    [[ -n $TMUX ]] && {
-        tmux set-window-option automatic-rename on > /dev/null
-    }
+    _tmux_temp_window_name "@${!#}" ssh "$@"
 }
 
 sssh()
@@ -53,6 +47,8 @@ command2fileshell_version()
     echo "${fn//!(A-Za-z0-9.-)/_}"
 }
 command2file() {
+    # shellcheck disable=SC2001
+    # can't get shell do it (yet) see above
     echo "${@:-${SHELL}}" | sed -e 's/[^A-Za-z0-9._-]/_/g'
 }
 
