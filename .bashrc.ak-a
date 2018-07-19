@@ -21,8 +21,6 @@ shopt -s checkwinsize
 # Define to avoid flattening internal contents of tar files
 # COMP_TAR_INTERNAL_PATHS=1
 
-export PATH=$PATH:/apps/asg/sw/bin
-
 case $- in
    *i*)
         :
@@ -36,7 +34,8 @@ declare -a bashrcs
 bashrcs=( env_manip misc_functions fb cd tmux interactive prompt history fb )
 for i in "${bashrcs[@]}"
 do
+    # shellcheck disable=SC1090
     [[ -f $HOME/.bash/$i ]] && source "$HOME/.bash/$i"
 done
 
-export PATH=$(echo $PATH | awk -vRS=: -vORS=: '!a[$0]++')
+export PATH=$(echo -n $PATH | awk -vRS=: -vORS=: '!a[$0]++')
