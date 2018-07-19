@@ -9,6 +9,7 @@ set -g @plugin 'tmux-plugins/tmux-logging'
 set -g @plugin 'jbnicolai/tmux-fpp'
 set -g @plugin 'tmux-plugins/tmux-pain-control'
 set -g @plugin 'tmux-plugins/tmux-copycat'
+set -g @plugin 'jimeh/tmux-themepack'
 
 # must be at the end
 run '~/.tmux/plugins/tpm/tpm'
