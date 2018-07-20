@@ -57,18 +57,20 @@ quotedcolour()
 }
 
 set_inuse() {
-    if [[ $PWD =~ ^/(proc|dev) ]]; then
-        inuse='0'
-        inusec=${_uq_fg_white}
+    local inusec
+    local inusep
+    if [[ $(stat -fc '%b' .) -eq 0 ]]; then
+        inuse="${_uq_fg_red3} -- ${_defc}"
     else
-        inuse=$(($(stat -fc '(%b-%a)*100/%b' .)))
-        if [[ $inuse -gt 80 ]]; then
+        inusep=$(($(stat -fc '(%b-%a)*100/%b' .)))
+        if [[ $inusep -gt 80 ]]; then
             inusec=${_uq_fg_red3}
-        elif [[ $inuse -gt 50 ]]; then
+        elif [[ $inusep -gt 50 ]]; then
             inusec=${_uq_fg_sandybrown}
         else
             inusec=${_uq_fg_darkgreen}
         fi
+        inuse=$(printf "${inusec}%3d%%%%${_defc}" ${inusep})
     fi
 }
 
@@ -80,7 +82,7 @@ print_prompt() {
     printf "${_defc}${_uq_fg_red3}: $_PROMPT_EXIT"
     printf "${_defc} ${_uq_fg_red4}${_tmux_ps} ${_shell_count} ${_uq_fg_purple}"
     printf "${_defc}${_uq_fg_sandybrown}${_PROMPT_CS} "
-    printf "T$(date +%H:%M:%S) ${inusec}%3d%% ${_defc}${_PROMPT_PATH} ; " ${inuse}
+    printf "T$(date +%H:%M:%S) ${inuse} ${_PROMPT_PATH} ; "
     printf "%*s$NO_COLOUR_UQ\n" ${_nspaces:-0} " "
 }
 
