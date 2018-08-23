@@ -55,3 +55,12 @@ bashrc()
     exec $SHELL
 }
 
+
+bgrm() {
+    (
+    set -e
+    TMPDIR=$(mktemp -d bgrm.XXXXXXXX)
+    mv "$@" ${TMPDIR}
+    command rm -rf ${TMPDIR}
+    ) &
+}

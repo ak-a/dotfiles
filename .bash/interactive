@@ -27,3 +27,4 @@ alias grep='grep --color'                     # show differences in colour
 function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
 
 alias egit='git -c http.proxy=fwdproxy:8080 -c https.proxy=fwdproxy:8080'
+export SHELLCHECK_OPTS="-e SC2086 -e SC2046"
