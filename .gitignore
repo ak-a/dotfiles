@@ -7,3 +7,4 @@
 .vim/allbundles/YouCompleteMe/python/ycm/tests/testdata
 .vim/biggrep.vim
 .tmux/plugins/tmux-*
+.tmux/*.log
