@@ -31,7 +31,7 @@ case $- in
 esac
 export CDHISTFILE=~/.cdhistory
 declare -a bashrcs
-bashrcs=( env_manip misc_functions fb cd tmux interactive prompt history fb )
+bashrcs=( env_manip misc_functions fb cd tmux interactive prompt history keyring fb )
 for i in "${bashrcs[@]}"
 do
     # shellcheck disable=SC1090
