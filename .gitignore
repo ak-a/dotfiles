@@ -1,4 +1,6 @@
 *~
+.tmux/*.log
+.tmux/plugins/tmux-*
 .vim/allbundles/YouCompleteMe/.circleci/
 .vim/allbundles/YouCompleteMe/python/ycm/client/messages_request.py
 .vim/allbundles/YouCompleteMe/python/ycm/tests/client/base_request_test.py
@@ -6,5 +8,4 @@
 .vim/allbundles/YouCompleteMe/python/ycm/tests/mock_utils.py
 .vim/allbundles/YouCompleteMe/python/ycm/tests/testdata
 .vim/biggrep.vim
-.tmux/plugins/tmux-*
-.tmux/*.log
+.vim/bundle/vim-tmux
