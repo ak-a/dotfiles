@@ -39,7 +39,7 @@ fi
 
 # Create or re-connect the default inner sessions
 let x=1
-for i in
+for i in laptop @devvm
 do
     tmux_window $i outer:$x "tmux-inner $i"
     let x=x+1
