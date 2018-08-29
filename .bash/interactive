@@ -11,7 +11,7 @@
 PrependPath $HOME/bin
 
 # to avoid cm issues on centOS 5
-export EDITOR=$HOME/bin/vim
+export EDITOR=vim
 
 #
 
