@@ -1,3 +1,7 @@
+#!/bin/bash
+
+[[ -r $HOME/.bashrc.debug ]] && set -x
+
 export PATH=~/bin:$PATH
 
 # Shell Options
@@ -30,12 +34,25 @@ case $- in
         ;;
 esac
 export CDHISTFILE=~/.cdhistory
-declare -a bashrcs
-bashrcs=( env_manip misc_functions fb cd tmux interactive prompt history keyring fb )
-for i in "${bashrcs[@]}"
+declare -a _bashrcs _debug_bashrc
+_bashrcs=( debug.bash env_manip misc_functions cd tmux interactive prompt history keyring fb )
+for i in "${_bashrcs[@]}"
 do
     # shellcheck disable=SC1090
-    [[ -f $HOME/.bash/$i ]] && source "$HOME/.bash/$i"
+    [[ -r $HOME/.bash/$i ]] && {
+	[[ " ${_debug_bashrc[@]} " =~ \ $i\  ]] && set -x
+        source "$HOME/.bash/$i"
+	[[ " ${_debug_bashrc[@]} " =~ \ $i\  ]] && set +x
+        [[ -r $HOME/.bashrc.debug ]] || set -x
+    }
+	
 done
+unset _bashrcs
+_remove_path_dupes
 
-export PATH=$(echo -n $PATH | awk -vRS=: -vORS=: '!a[$0]++')
+# olds way using awk
+#PATH="$(echo -n "$PATH" | /bin/awk -vRS=: -vORS=: '!a[$0]++')"
+#export PATH
+
+# just in case we have been debugging
+set +x
