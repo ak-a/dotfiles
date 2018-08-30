@@ -42,8 +42,7 @@ do
     [[ -r $HOME/.bash/$i ]] && {
 	[[ " ${_debug_bashrc[@]} " =~ \ $i\  ]] && set -x
         source "$HOME/.bash/$i"
-	[[ " ${_debug_bashrc[@]} " =~ \ $i\  ]] && set +x
-        [[ -r $HOME/.bashrc.debug ]] || set -x
+	[[ " ${_debug_bashrc[@]} " =~ \ $i\   && ! -r $HOME/.bashrc.debug ]] && set +x
     }
 	
 done
