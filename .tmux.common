@@ -5,7 +5,7 @@
 
 set -g default-terminal "screen-256color"
 set -g terminal-overrides "*88col*:colors=88,*256col*:colors=256,*col*:colors=256"
-set-option -g history-limit 10000
+set-option -g history-limit 150000
 
 ### Unbind existing tmux key bindings (except 0-9).
 unbind '"'
