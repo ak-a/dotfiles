@@ -17,7 +17,7 @@ export HISTDIR=$HOME/.histdir
 
 HISTFILESIZE=500000
 HISTFILE=$HISTDIR/${HOSTNAME:-$(hostname -s)}.$(tty | cut -d/ -f4).$$
-HISTFILEMERGE=$HOME/.bash_history
+HISTFILEMERGE=$HOME/.bash_history_merged
 
 # assumes a 'history -a' in prompt_command and
 # needs a history -w $HISTFILEMERGE in .bash_logout
