@@ -47,11 +47,15 @@ do
 	
 done
 unset _bashrcs
-_remove_path_dupes
 
-# olds way using awk
-#PATH="$(echo -n "$PATH" | /bin/awk -vRS=: -vORS=: '!a[$0]++')"
-#export PATH
+# if we got stuff setup then clean our PATH
+if declare -F _remove_path_dupes >/dev/null; then
+    _remove_path_dupes
+else
+    # olds way using awk
+    PATH="$(echo -n "$PATH" | /bin/awk -vRS=: -vORS=: '!a[$0]++')"
+    export PATH
+fi
 
 # just in case we have been debugging
 set +x
