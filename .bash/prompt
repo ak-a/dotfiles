@@ -202,7 +202,7 @@ export PS1="${_bg_steelblue}${_fg_white}:${NO_COLOUR} \
 \$(_scm_prompt) \
 $_user_colour\u$NO_COLOUR\
 $_fg_purple@\
-$_fg_steelblue$HOSTNAME \
+$_fg_steelblue${HOSTNAME%.facebook.com} \
 $_bg_steelblue$_fg_white;$NO_COLOUR "
 
 function prompt_command_timer()

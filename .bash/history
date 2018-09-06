@@ -17,21 +17,58 @@ export HISTDIR=$HOME/.histdir
 
 HISTFILESIZE=500000
 HISTFILE=$HISTDIR/${HOSTNAME:-$(hostname -s)}.$(tty | cut -d/ -f4).$$
-HISTFILEMERGE=$HOME/.merged_history
+HISTFILEMERGE=$HOME/.bash_history_merged
+
+_slurp_shell_histories() {
+    local _histfile
+    local _histfilepath
+    while read -r _histfile
+    do
+        _histfilepath=$HISTDIR/$_histfile
+        # if the file is newer than the merge file then we have done some shell commands
+        # since the last merge, since this is called again when merge the history at
+        # logout, we need to check we aren't re-reading ourselves.
+        if [[ $_histfilepath -nt $HISTFILEMERGE && "$_histfilepath" != "$HISTFILE" ]]; then
+            history -r $_histfilepath
+        else
+            # our file should have been merged so we can delete, if the shell
+            # is still running then the prompt_history will write a new file, so we are good
+            rm -f $_histfilepath
+        fi
+    done < <(ls -rt1 $HISTDIR)
+    _HISTORYFIRSTRUN=true
+}
+
+# should be called at shell logout
+shell_history_write_all() {
+    local lockfile
+    local tmpfile
+
+    # if we didn't set a MERGE filename, skip
+    [[ -z $HISTFILEMERGE ]] && return
+
+    # try and get a lock 'mv' is atomic (at least on local fs)
+    lockfile=$HISTDIR/_merge.lock
+    tmpfile=$(mktemp -p $HISTDIR)
+    [[ $? -ne 0 ]] && return            # if this fails, then we can't do much
+    mv $tmpfile $lockfile || { rm -f $tmpfile; return; }
+
+    _slurp_shell_histories        # will read any newer stuff for merging
+
+    # now we write the lovely merge history into the single file to make things quicker
+    # for the next shell
+    history -w $HISTFILEMERGE
+    rm -f $lockfile
+}
+
 
 # assumes a 'history -a' in prompt_command and
-# needs a history -a $GLOBAL_HISTORY in .bash_logout
+# needs a history -w $HISTFILEMERGE in .bash_logout
 prompt_history() {
     history -a
     if [[ -z ${_HISTORYFIRSTRUN} ]]; then
         [[ -r $HISTFILEMERGE ]] && history -r $HISTFILEMERGE
-        while read _histfile
-        do
-            [[ $HISTDIR/$_histfile -nt $HISTFILEMERGE ]] && history -r $HISTDIR/$_histfile
-        done < <(ls -rt1 $HISTDIR)
-        #perl -nae ' next unless /#\d+/; chomp(); $_ .= " " . <>; print ' *.tty* | sort -n | perl -nae  ' print $F[0], "\n"; shift @F; print join(" ", @F), "\n"; '
-        #cat x| sort -n | perl -nae  ' shift @F; print $F[0], "\n"; shift @F; print join(" ", @F), "\n"; ' > $_newhistory
-        _HISTORYFIRSTRUN=true
+        _slurp_shell_histories
     else
         history -n
     fi

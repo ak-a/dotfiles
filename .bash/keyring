@@ -1,12 +1,12 @@
 #!/bin/bash
 
 _check_agent_alive() {
-    if ps -p $SSH_AGENT_PID > /dev/null; then
-        if [[ $(ps -p $SSH_AGENT_PID -o cmd=) = ssh-agent ]]; then
+    if ps -p "$SSH_AGENT_PID" > /dev/null; then
+        if [[ $(ps -p "$SSH_AGENT_PID" -o cmd=) = ssh-agent ]]; then
             ssh-add -l > /dev/null 2>&1
             case $? in
                 2)
-                    kill $SSH_AGENT_PID
+                    kill "$SSH_AGENT_PID"
                     ;;
                 0|1)
                     return 0
@@ -29,7 +29,7 @@ _get_agent_started() {
     if [[ -z $SSH_AUTH_SOCK ]]; then
         if [[ -r $_disk_keyring ]]; then
             # shellcheck disable=SC1090
-            source $_disk_keyring
+            source "$_disk_keyring"
         fi
     fi
     if [[ -n $SSH_AUTH_SOCK ]]; then
@@ -37,7 +37,8 @@ _get_agent_started() {
             return 0
         fi
     fi
-    eval $(ssh-agent | tee <(grep -v ^echo > $_disk_keyring))
+    # shellcheck disable=SC2046 disable=SC2086
+    eval $(ssh-agent | tee >(grep -v ^echo > $_disk_keyring))
     sleep 1
     return 0
 }
