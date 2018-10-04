@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #
 # Prompt command stuff
 
@@ -54,6 +54,7 @@ unquotedcolour()
 quotedcolour()
 {
     [ -z "${_old_tput_term+x}" ] && eval unset $1
+    # shellcheck disable=SC1083
     eval export $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
 }
 
@@ -76,7 +77,7 @@ set_inuse() {
 }
 
 print_prompt() {
-    if [[ $_inuse_dir != $PWD ]]; then
+    if [[ $_inuse_dir != "$PWD" ]]; then
       _inuse_dir=$PWD
       set_inuse
     fi
