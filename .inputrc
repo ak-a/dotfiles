@@ -21,6 +21,8 @@ j: history-search-forward
 k: history-search-backward
 set keymap vi-insert
 # these are for vi-insert mode
+"\C-e": end-of-line
+"\C-a": beginning-of-line
 "\e[A": history-search-backward
 "\e[B": history-search-forward
 $endif
