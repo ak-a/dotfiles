@@ -3,6 +3,17 @@
 [[ -r $HOME/.bashrc.debug ]] && set -x
 
 export PATH=~/bin:$PATH
+export CDHISTFILE=~/.cdhistory
+
+# only pass beyond if we are interactive shell
+[[ $- =~ i ]] || return
+## INTERACTIVE SHELLS ARE US!
+#############################
+
+# Shell Declarations
+####################
+
+declare -a _bashrcs _debug_bashrc _bashrc_sources _bashrc_ood
 
 # Shell Options
 # #############
@@ -10,6 +21,7 @@ export PATH=~/bin:$PATH
 # Use case-insensitive filename globbing
 shopt -s nocaseglob
 shopt -s checkwinsize
+set -o functrace
 
 # Completion options
 # ##################
@@ -25,26 +37,83 @@ shopt -s checkwinsize
 # Define to avoid flattening internal contents of tar files
 # COMP_TAR_INTERNAL_PATHS=1
 
-case $- in
-   *i*)
+# Some Functions we need
+# ######################
+
+function _bashrc_cleanup() {
+    rm -f ${BASHRCDIR}/*.$$.*
+}
+
+function _bashrc_each() {
+    local _bashrc
+    _bashrc_ood=()
+    for _bashrc in ${_bashrc_sources[@]}
+    do
+        [[ $_bashrc -nt ${BASHRC_LAST_SOURCE} ]] && _bashrc_ood+=( $_bashrc )
+    done
+    _PROMPT_OOD_BASHRCS=${_bashrc_ood[@]}
+}
+
+alias reload='set -o functrace; _reload_ood_bashrc; set +o functrace'
+function _reload_ood_bashrc() {
+    local _bashrc
+    for _bashrc in ${_bashrc_ood[@]}
+    do
+        source $_bashrc
+    done
+    touch ${BASHRC_LAST_SOURCE}
+}
+
+function reloadall() {
+    source ${_bashrc_sources[0]}
+}
+
+function _bashrc_source() {  # file
+    # this will source a file, if it exists and add the mtime of the file 
+    # to the list of files sourced, then we can monitor if we are out
+    # of date and warn the shell may need to be reloaded or just source the
+    # file that has been updated
+    local _bashrc
+    _bashrc=$HOME/.bash/$i
+
+    # shellcheck disable=SC1090
+    [[ -r $_bashrc ]] && {
+        _bashrc_sources+=( $_bashrc )
+        # if we want to debug and individual bashrc
+	[[ " ${_debug_bashrc[@]} " =~ \ $1\  ]] && set -x
+        source "$_bashrc"
+        ## check if we are debugging _bashrc all before switching off set -x
+	[[ " ${_debug_bashrc[@]} " =~ \ $1\   && ! -r $HOME/.bashrc.debug ]] && set +x
+        touch ${BASHRC_LAST_SOURCE}
+    }
+}
+function trapadd() { #command #SIGSPEC
+    local _current_trap
+
+    _current_trap=$(trap -p $2)
+    # this is either empty or trap -- blahblah SIGNAL
+    if [[ -z $_current_trap ]]; then
+        trap -- $1 $2
+    elif [[ $_current_trap =~ $1 ]]; then
         :
-        ;;
-    *)
-        return
-        ;;
-esac
-export CDHISTFILE=~/.cdhistory
-declare -a _bashrcs _debug_bashrc
+    else
+        eval ${_current_trap/\' $2/;$1\' $2}
+    fi
+}
+
+declare -xf _bashrc_cleanup _bashrc_each trapadd
+
+BASHRCDIR=/run/user/${UID}/bashrc
+trap "_bashrc_cleanup" EXIT
+mkdir -p ${BASHRCDIR}
+BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
+trapadd "_bashrc_each" DEBUG
+
 _bashrcs=( debug.bash env_manip misc_functions cd tmux interactive prompt history keyring fb )
+#_debug_bashrc=( prompt )
 for i in "${_bashrcs[@]}"
 do
-    # shellcheck disable=SC1090
-    [[ -r $HOME/.bash/$i ]] && {
-	[[ " ${_debug_bashrc[@]} " =~ \ $i\  ]] && set -x
-        source "$HOME/.bash/$i"
-	[[ " ${_debug_bashrc[@]} " =~ \ $i\   && ! -r $HOME/.bashrc.debug ]] && set +x
-    }
-	
+    _bashrc_source $i
 done
 unset _bashrcs
 
