@@ -21,7 +21,7 @@ declare -a _bashrcs _debug_bashrc _bashrc_sources _bashrc_ood
 # Use case-insensitive filename globbing
 shopt -s nocaseglob
 shopt -s checkwinsize
-set -o functrace
+#set -o functrace
 
 # Completion options
 # ##################
@@ -110,7 +110,7 @@ BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
 trapadd "_bashrc_each" DEBUG
 
 _bashrcs=( debug.bash env_manip misc_functions cd tmux interactive prompt history keyring fb )
-#_debug_bashrc=( prompt )
+#_debug_bashrc=( keyring )
 for i in "${_bashrcs[@]}"
 do
     _bashrc_source $i
