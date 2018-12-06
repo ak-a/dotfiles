@@ -182,6 +182,7 @@ if filereadable("~/.vim/biggrep.vim")
   source ~/.vim/biggrep.vim
 endif
 
+<<<<<<< HEAD
 " Focus and auto-reload stuff
 augroup wincent_term
   autocmd!
@@ -228,4 +229,6 @@ onoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>
 vnoremap <silent> <f20> <Esc>:silent doautocmd FocusLost %<cr>gv
 vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
 
-
+let &t_8f = "\<Esc>[38:2:%lu:%lu:%lum"                                                                               
+let &t_8b = "\<Esc>[48:2:%lu:%lu:%lum"                                                                               
+set termguicolors
