@@ -182,7 +182,6 @@ if filereadable("~/.vim/biggrep.vim")
   source ~/.vim/biggrep.vim
 endif
 
-<<<<<<< HEAD
 " Focus and auto-reload stuff
 augroup wincent_term
   autocmd!
