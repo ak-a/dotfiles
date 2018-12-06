@@ -239,4 +239,5 @@ bind-key "'" command-prompt -p "send pane to:"  "break-pane -s ':%%'"
 set -sg escape-time 0
 
 set -g status-right "#S [#I:#P] -- "
+set -g renumber-windows on
 
