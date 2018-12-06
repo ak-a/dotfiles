@@ -26,13 +26,13 @@ _get_agent_started() {
     local _disk_keyring
 
     _disk_keyring=$HOME/.keyring-${HOSTNAME:-$(hostname)}
-    if [[ -z $SSH_AUTH_SOCK ]]; then
+    if [[ -z $SSH_AUTH_SOCK || -z $SSH_AGENT_PID ]]; then
         if [[ -r $_disk_keyring ]]; then
             # shellcheck disable=SC1090
             source "$_disk_keyring"
         fi
     fi
-    if [[ -n $SSH_AUTH_SOCK ]]; then
+    if [[ -n $SSH_AUTH_SOCK && -n $SSH_AGENT_PID ]]; then
         if _check_agent_alive; then
             return 0
         fi
