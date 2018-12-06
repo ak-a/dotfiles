@@ -181,3 +181,51 @@ let g:airline_theme='light'
 if filereadable("~/.vim/biggrep.vim")
   source ~/.vim/biggrep.vim
 endif
+
+" Focus and auto-reload stuff
+augroup wincent_term
+  autocmd!
+  autocmd FocusGained * checktime
+augroup END
+
+" enable focus reporting on entering Vim
+let &t_ti .= "\e[?1004h"
+" disable focus reporting on leaving Vim
+let &t_te = "\e[?1004l" . &t_te
+
+function! s:RunFocusLostAutocmd()
+  let cmdline = getcmdline()
+  let cmdpos  = getcmdpos()
+
+  silent doautocmd FocusLost %
+
+  call setcmdpos(cmdpos)
+  return cmdline
+endfunction
+
+function! s:RunFocusGainedAutocmd()
+  let cmdline = getcmdline()
+  let cmdpos  = getcmdpos()
+
+  " our checktime autocmd will produce:
+  " E523: Not allowed here:   checktime
+  silent! doautocmd FocusGained %
+
+  call setcmdpos(cmdpos)
+  return cmdline
+endfunction
+
+execute "set <f20>=\<Esc>[O"
+execute "set <f21>=\<Esc>[I"
+cnoremap <silent> <f20> <c-\>e<SID>RunFocusLostAutocmd()<cr>
+cnoremap <silent> <f21> <c-\>e<SID>RunFocusGainedAutocmd()<cr>
+inoremap <silent> <f20> <c-o>:silent doautocmd FocusLost %<cr>
+inoremap <silent> <f21> <c-o>:silent doautocmd FocusGained %<cr>
+nnoremap <silent> <f20> :doautocmd FocusLost %<cr>
+nnoremap <silent> <f21> :doautocmd FocusGained %<cr>
+onoremap <silent> <f20> <Esc>:silent doautocmd FocusLost %<cr>
+onoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>
+vnoremap <silent> <f20> <Esc>:silent doautocmd FocusLost %<cr>gv
+vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
+
+
