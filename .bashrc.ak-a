@@ -21,7 +21,14 @@ declare -a _bashrcs _debug_bashrc _bashrc_sources _bashrc_ood
 # Use case-insensitive filename globbing
 shopt -s nocaseglob
 shopt -s checkwinsize
+shopt -s cmdhist
 #set -o functrace
+
+# Environment for random stuff
+# ############################
+
+# note this is explicitly a single ASCII char, in this case ctrl-b
+export MOSH_ESCAPE_KEY=
 
 # Completion options
 # ##################
