@@ -1,8 +1,8 @@
 #!/bin/bash
-#
+# shellcheck disable=SC2154,SC1117,SC1090
 # Prompt command stuff
 
-: ${HOSTNAME:=$(hostname)}
+: "${HOSTNAME:=$(hostname)}"
 
 # if we are a sub-shell we might have a different TERM, so record what we were
 # later on we only generate the colours if we have a new term or haven't
@@ -36,10 +36,12 @@ function colourES()
 
 function quotedcolorES()
 {
-    local uqc
+    local uqc bs
     uqc="$(colourES $1 $2)"
+    bs="\\"
     [[ ${#uqc} == 0 ]] && return
-    echo "\[$uqc\]"
+
+    echo "${bs}[${uqc}${bs}]"
 }
 
 # a bit complicated - if we have a colour we don't re-generate
@@ -60,7 +62,7 @@ quotedcolour()
 set_inuse() {
     local inusec
     local inusep
-    if [[ $(stat -fc '%b' .) -eq 0 ]]; then
+        if [[ $(stat -fc '%b' .) -eq 0 ]]; then
         inuse="${_uq_fg_red3} -- ${_defc}"
     else
         inusep=$(($(stat -fc '(%b-%a)*100/%b' .)))
@@ -71,7 +73,7 @@ set_inuse() {
         else
             inusec=${_uq_fg_darkgreen}
         fi
-        inuse=$(printf "${inusec}%3d%%%%${_defc}" ${inusep})
+        inuse=$(printf "${inusec}%3d%%${_defc}" ${inusep})
     fi
 }
 
@@ -82,14 +84,15 @@ print_prompt() {
     fi
     tmux_prompt
 
-    printf "${_defc}${_uq_fg_red3}: $_PROMPT_EXIT"
-    printf "${_defc} ${_uq_fg_red4}${_tmux_ps} ${_shell_count} ${_uq_fg_purple}"
-    printf "${_defc}${_uq_fg_sandybrown}${_PROMPT_CS} "
-    printf "T$(date +%H:%M:%S) ${inuse} ${_PROMPT_PATH} ; "
-    printf "%*s$NO_COLOUR_UQ\n" ${_nspaces:-0} " "
+    printf '%s%s: %s' ${_defc} ${_uq_fg_red3} "${_PROMPT_EXIT}"
+    printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
+    printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
+    printf '%s %s %s ; ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
+    printf '%*s%s\n' ${_nspaces:-0} ' ' ${NO_COLOUR_UQ}
 }
 
 tmux_prompt() {
+    local repo
     if [ -n "$TMUX" ]; then
         _tmux_ps=$(tmux list-pane -F "#{session_name}:#{window_index}:#{pane_index}:#{pane_active}" |
                     awk -F: ' $4 == 1 { session=$1 ":" $2; pindex=$3; } 
@@ -99,14 +102,19 @@ tmux_prompt() {
                                         } else {
                                             printf session; }
                                     }')
+        #repo="$(_scm_repo)"
+        local report
+        if [[ -n $report ]]; then
+            tmux rename-window "${report}"
+        fi
     fi
 }
 
 # get prompt without colours, if we have done this we are golden
-: ${_default_prompt:=$(_PROMPT_PATH="" _nspaces=0 print_prompt | perl -p -e 'chomp; s/\033\[.*?m//g')}
+: "${_default_prompt:=$(_PROMPT_PATH="" _nspaces=0 print_prompt | perl -p -e 'chomp; s/\033\[.*?m//g')}"
 export _default_prompt
 # date=8, exit=1, shell_count=2
-let _prompt_min_length=${#_default_prompt}+25
+_prompt_min_length=$(( ${#_default_prompt} + 25 ))
 
 # create my fg and bg colours - searches rgb.txt for
 # the colour and converts to ANSI color cube that is
@@ -135,6 +143,7 @@ case "$USER" in
         _user_colour="$_fg_darkgreen"
         ;;
     root)
+        # shellcheck disable=SC2034
         _user_color="$_bg_yellow$_fg_red"
         ;;
     *)
@@ -161,45 +170,26 @@ shopt -u nocasematch
 _PROMPT_EXIT_OK="${_PROMPT_EXIT_OK_FG}   ${_tick}"
 _PROMPT_EXIT_BAD="$_PROMPT_EXIT_BAD_BG$_PROMPT_EXIT_BAD_FG${_cross}"
 
-case $SHLVL in
-    1)
-        [[ -n $DISPLAY ]] && {
-            export DISPLAYFILE=$HOME/.display.$$
-            echo export DISPLAY=$DISPLAY > $DISPLAYFILE
-        }
-        ;;
-    *)
-        if [[ -z $DISPLAY ]]; then
-            if [[ -n $DISPLAYFILE ]]; then
-                source $DISPLAYFILE
-            else
-                while true;
-                do
-                    read _ppid _user < <(ps -o ppid= -o user= -p ${_ppid:-$$})
-                    [[ $_user != $USER ]] && break
-                    [[ -r $HOME/.display.$_ppid ]] && { source $HOME/.display.$_ppid; break; }
-                    [[ $_ppid == 1 ]] && break
-                done
-            fi
-        fi
-        ;;
-esac
-
 _scm_prompt() {
+    :
+}
+
+_scm_repo() {
     :
 }
 
 _defc="${NO_COLOUR_UQ}${_uq_bg_grey93}${_uq_fg_black}"
 if [[ $SHLVL -eq 0 ]]; then
-    _shell_count="${_uq_bg_black}${_uq_fg_yellow}%%0${_defc}"
+    _shell_count="${_uq_bg_black}${_uq_fg_yellow}%0${_defc}"
 else
-    _shell_count="${_uq_fg_black}%%$((SHLVL-1))"
+    _shell_count="${_uq_fg_black}%$((SHLVL-1))"
 fi
 
 # single line prompt, the first line is done by the timer, so we don't repeat
 # for tab completion etc.
+# shellcheck disable=SC2155
 export PS1="${_bg_steelblue3}${_fg_white}:${NO_COLOUR} \
-\$(_scm_prompt) \
+\$(_scm_prompt)\$(_scm_repo)\
 \$_PROMPT_OOD_BASHRCS\
 $_user_colour\u$NO_COLOUR\
 $_fg_purple@\
@@ -209,16 +199,16 @@ $_bg_steelblue3$_fg_white;$NO_COLOUR "
 function prompt_command_timer()
 {
     local _exit_status=$?
-    let _command_duration=SECONDS-_PROMPT_TIMER
+    _command_duration=$((SECONDS-_PROMPT_TIMER))
     prompt_history
-    _PROMPT_CS=$(printf "%02d:%02d:%02d" $(($_command_duration/60/60)) $(($_command_duration/60%60)) $(($_command_duration%60)))
+    _PROMPT_CS=$(printf "%02d:%02d:%02d" $((_command_duration/60/60)) $((_command_duration/60%60)) $((_command_duration%60)))
     if [ $_exit_status == 0 ]; then
         _PROMPT_EXIT=$_PROMPT_EXIT_OK$(printf "%3d" $_exit_status)
     else
         _PROMPT_EXIT=$_PROMPT_EXIT_BAD$(printf "%3d" $_exit_status)
     fi
-    if [[ ${_bashrc_ood[@]} ]]; then
-        _PROMPT_OOD_BASHRCS="$_uq_fg_red3( ${_bashrc_ood[@]} )$NO_COLOUR_UQ "
+    if [[ ${_bashrc_ood[*]} ]]; then
+        _PROMPT_OOD_BASHRCS="$_uq_fg_red3( ${_bashrc_ood[*]} )$NO_COLOUR_UQ "
     else
         unset _PROMPT_OOD_BASHRCS
     fi
@@ -236,7 +226,7 @@ function prompt_command_timer()
 #	_LAST_PROMPT_PATH="$PWD$COLUMNS"
 	local _maxpath
         # make sure we can do the ..., so hence the 3
-        let _maxpath=COLUMNS-_prompt_min_length-3
+        _maxpath=$(( COLUMNS-_prompt_min_length-3 ))
 	if [ $_maxpath -lt ${#_PWD} ] ; then
             local _offset
 	    _offset=${#_PWD}-_maxpath
@@ -245,8 +235,8 @@ function prompt_command_timer()
 	    _PROMPT_PATH="$_PWD"
 	fi
         if [[ ${#NO_COLOUR} -gt 0 ]]; then
-            local prompt_length=$(( ${#_PROMPT_PATH}+$_prompt_min_length ))
-            let _nspaces=COLUMNS-prompt_length
+            local prompt_length=$(( ${#_PROMPT_PATH}+_prompt_min_length ))
+            _nspaces=$(( COLUMNS-prompt_length ))
         fi
 #    fi
     
@@ -275,6 +265,7 @@ command_timer_start()
 }
 
 typeset -xf prompt_command_timer command_timer_start 
+export prompt_command_timer command_timer_start
 export PROMPT_COMMAND=prompt_command_timer
 trapadd 'command_timer_start' DEBUG
 
@@ -282,6 +273,7 @@ sudo()
 {
     local _ps1="$PS1"
     (
+        #shellcheck disable=SC2030
         export PS1="$_fg_red: $_bg_red$_fg_yellow### \\u ###$NO_COLOUR \
 $_fg_purple@\
 $_fg_steelblue3$HOSTNAME\
@@ -290,5 +282,6 @@ $_bg_yellow$_fg_steelblue3:;$NO_COLOUR "
 
         command sudo "$@"
     )
+    #shellcheck disable=SC2031
     export PS1="$_ps1"
 }
