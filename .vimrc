@@ -164,6 +164,7 @@ let g:pydiction_location = $HOME
 let g:pydiction_location += '/.vim/bundle/pydiction/complete-dict' 
 
 "let g:ycm_autoclose_preview_window_after_completion=1
+let g:ycm_filetype_whitelist = { '*.py': 1}
 "map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
 
 
@@ -234,3 +235,9 @@ if &term =~# '^screen'
   let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 endif
 
+" YCM must use the same Python version it's linked against
+let g:ycm_path_to_python_interpreter = '/data/users/aka4/fbsource/fbcode/third-party-buck/gcc-5-glibc-2.23/build/python/2.7/bin/python2.7'
+" Default ycm_extra_conf.py for fbcode
+let g:ycm_global_ycm_extra_conf = '/home/aka4/.vim/bundle/YouCompleteMe/ycm_extra_conf_fbcode.py'
+
+source $HOME/.vim/fbrc
