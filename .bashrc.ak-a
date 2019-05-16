@@ -28,7 +28,7 @@ shopt -s cmdhist
 # ############################
 
 # note this is explicitly a single ASCII char, in this case ctrl-b
-export MOSH_ESCAPE_KEY=~
+#export MOSH_ESCAPE_KEY=~
 
 # Completion options
 # ##################
