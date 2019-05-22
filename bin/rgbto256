@@ -11,6 +11,7 @@ while( <DATA> ) {
         exit 0;
     }
 }
+exit 1;
 
 __DATA__
 0   Black  #000000
