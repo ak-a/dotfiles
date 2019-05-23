@@ -88,7 +88,8 @@ print_prompt() {
     printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
     printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
     printf '%s %s %s ; ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
-    printf '%*s%s\n' ${_nspaces:-0} ' ' ${NO_COLOUR_UQ}
+    tput el
+    printf '\n'
 }
 
 tmux_prompt() {
@@ -109,9 +110,6 @@ tmux_prompt() {
     fi
 }
 
-# get prompt without colours, if we have done this we are golden
-: "${_default_prompt:=$(_PROMPT_PATH="" _nspaces=0 print_prompt | perl -p -e 'chomp; s/\033\[.*?m//g')}"
-export _default_prompt
 # date=8, exit=1, shell_count=2
 _prompt_min_length=$(( ${#_default_prompt} + 25 ))
 
@@ -233,10 +231,6 @@ function prompt_command_timer()
 	else
 	    _PROMPT_PATH="$_PWD"
 	fi
-        if [[ ${#NO_COLOUR} -gt 0 ]]; then
-            local prompt_length=$(( ${#_PROMPT_PATH}+_prompt_min_length+3 ))
-            _nspaces=$(( COLUMNS-prompt_length ))
-        fi
 #    fi
     
     #local _dokinit
