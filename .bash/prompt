@@ -92,7 +92,6 @@ print_prompt() {
 }
 
 tmux_prompt() {
-    local repo
     if [ -n "$TMUX" ]; then
         _tmux_ps=$(tmux list-pane -F "#{session_name}:#{window_index}:#{pane_index}:#{pane_active}" |
                     awk -F: ' $4 == 1 { session=$1 ":" $2; pindex=$3; } 
@@ -235,7 +234,7 @@ function prompt_command_timer()
 	    _PROMPT_PATH="$_PWD"
 	fi
         if [[ ${#NO_COLOUR} -gt 0 ]]; then
-            local prompt_length=$(( ${#_PROMPT_PATH}+_prompt_min_length ))
+            local prompt_length=$(( ${#_PROMPT_PATH}+_prompt_min_length+3 ))
             _nspaces=$(( COLUMNS-prompt_length ))
         fi
 #    fi
