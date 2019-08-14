@@ -4,61 +4,6 @@
 
 : "${HOSTNAME:=$(hostname)}"
 
-# if we are a sub-shell we might have a different TERM, so record what we were
-# later on we only generate the colours if we have a new term or haven't
-# generated them before
-if [[ -n ${_tput_term+x} ]]; then
-    _old_tput_term=$_tput_term
-fi
-
-# make $TERM sane in our environment
-_tput_term=$TERM
-if [ -n "$COLORTERM" ]; then
-    _tput_term=$COLORTERM
-elif [ "$TERM" == "screen-256color" ]; then
-    _tput_term=xterm-256color
-fi
-
-#echo _tput_term=$_tput_term
-
-function colourES()
-{
-    local colour
-
-    colour=$(rgbto256 $1)
-
-    if [[ -n ${colour} ]];then
-        tput ${2:-setaf} ${colour}
-    else
-        echo "No such colour $1" >&2
-    fi
-}
-
-function quotedcolorES()
-{
-    local uqc bs
-    uqc="$(colourES $1 $2)"
-    bs="\\"
-    [[ ${#uqc} == 0 ]] && return
-
-    echo "${bs}[${uqc}${bs}]"
-}
-
-# a bit complicated - if we have a colour we don't re-generate
-# makes subshells quicker to start, but...
-# if we have a new TERM then we should re-generate just in case.
-unquotedcolour()
-{
-    eval export $1=\"\$\(colourES $2 $3\)\"   
-}
-
-quotedcolour()
-{
-    [ -z "${_old_tput_term+x}" ] && eval unset $1
-    # shellcheck disable=SC1083
-    eval export $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
-}
-
 set_inuse() {
     local inusec
     local inusep
@@ -87,9 +32,7 @@ print_prompt() {
     printf '%s%s: %s' ${_defc} ${_uq_fg_red3} "${_PROMPT_EXIT}"
     printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
     printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
-    printf '%s %s %s ; ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
-    tput el
-    printf '\n'
+    printf '%s %s %s ; %s\n' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH} ${CLEAR_EOL}
 }
 
 tmux_prompt() {
@@ -113,28 +56,6 @@ tmux_prompt() {
 # date=8, exit=1, shell_count=2
 _prompt_min_length=$(( ${#_default_prompt} + 25 ))
 
-# create my fg and bg colours - searches rgb.txt for
-# the colour and converts to ANSI color cube that is
-# 6x6x6 (dec not bits)
-if [[ -n $TERM ]]; then 
-    setab=
-    for g in f b
-    do
-        for c in red yellow steelblue3 black green cyan purple white \
-            red3 darkgreen grey93 sandybrown grey42
-        do
-            quotedcolour _${g}g_$c $c $setab
-            unquotedcolour _uq_${g}g_$c $c $setab
-        done
-        setab=setab
-    done
-  fi
-
-NO_COLOUR_UQ="$(tput sgr0)"
-#NO_COLOUR_UQ="\033[0m"
-NO_COLOUR="\[${NO_COLOUR_UQ}\]"
-#REVERSE="\[$(tput rev)\]"
-
 case "$USER" in
     andrew|aka4)
         _user_colour="$_fg_darkgreen"
@@ -148,10 +69,6 @@ case "$USER" in
         ;;
 esac
 
-unquotedcolour _PROMPT_EXIT_OK_FG   green3          # green
-unquotedcolour _PROMPT_EXIT_BAD_FG Khaki1          # yellow
-unquotedcolour _PROMPT_EXIT_BAD_BG red1 setab    # red
-
 # utf-8 commented out
 shopt -s nocasematch
 if [[ ${LANG/-} = "EN_GB.UTF8" ]]; then
@@ -164,8 +81,8 @@ fi
 shopt -u nocasematch
 
 
-_PROMPT_EXIT_OK="${_PROMPT_EXIT_OK_FG}   ${_tick}"
-_PROMPT_EXIT_BAD="$_PROMPT_EXIT_BAD_BG$_PROMPT_EXIT_BAD_FG${_cross}"
+_PROMPT_EXIT_OK="${_uq_fg_green3}   ${_tick}"
+_PROMPT_EXIT_BAD="${_uq_bg_red1}${_uq_fg_Khaki1}${_cross}"
 
 _scm_prompt() {
     :

@@ -1,6 +1,10 @@
 #!/bin/bash
 
-[[ -r $HOME/.bashrc.debug ]] && set -x
+[[ -r $HOME/.bashrc.debug ]] && {
+    exec 5>> /tmp/bashtrace.$$.txt
+    BASH_XTRACEFD=5
+    set -x
+}
 
 export PATH=~/bin:$PATH
 export CDHISTFILE=~/.cdhistory
@@ -14,6 +18,7 @@ export CDHISTFILE=~/.cdhistory
 ####################
 
 declare -a _bashrcs _debug_bashrc _bashrc_sources _bashrc_ood
+declare -A _bashrc_source_ms
 
 # Shell Options
 # #############
@@ -81,16 +86,25 @@ function _bashrc_source() {  # file
     # of date and warn the shell may need to be reloaded or just source the
     # file that has been updated
     local _bashrc
-    _bashrc=$HOME/.bash/$i
+    _bashrc=$1
+    local _bashrc_ms
 
     # shellcheck disable=SC1090
     [[ -r $_bashrc ]] && {
         _bashrc_sources+=( $_bashrc )
         # if we want to debug and individual bashrc
-	[[ " ${_debug_bashrc[@]} " =~ \ $1\  ]] && set -x
+	[[ " ${#_debug_bashrc[@]} " =~ \ $1\  ]] && {
+	    exec 5>> /tmp/bashtrace.$$.txt
+	    BASH_XTRACEFD=5
+	    set -x
+	}
+	_bashrc_ms=$(date +%s%3N)
         source "$_bashrc"
+	let _bashrc_ms=$(date +%s%3N)-_bashrc_ms
         ## check if we are debugging _bashrc all before switching off set -x
 	[[ " ${_debug_bashrc[@]} " =~ \ $1\   && ! -r $HOME/.bashrc.debug ]] && set +x
+	_bashrc_source_ms[${_bashrc}]=$_bashrc_ms
+	[[ -n $BASH_XTRACEFD ]] && echo "TIME: source $_bashrc: ${_bashrc_ms}ms" >&5
         touch ${BASHRC_LAST_SOURCE}
     }
 }
@@ -110,17 +124,25 @@ function trapadd() { #command #SIGSPEC
 
 declare -xf _bashrc_cleanup _bashrc_each trapadd
 
-BASHRCDIR=/run/user/${UID}/bashrc
+if [[ -d /run ]]; then
+    PIDRUNDIR=/run/user
+elif [[ -d /dev/shm ]]; then
+    PIDRUNDIR=/dev/shm
+else
+    PIDRUNDIR=/tmp
+fi
+
+BASHRCDIR=${PIDRUNDIR}/${UID}/bashrc
 trap "_bashrc_cleanup" EXIT
 mkdir -p ${BASHRCDIR}
 BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
-trapadd "_bashrc_each" DEBUG
+#trapadd "_bashrc_each" DEBUG
 
-_bashrcs=( debug.bash env_manip misc_functions cd tmux interactive prompt history keyring fb )
+_bashrcs=( debug.bash env_manip misc_functions cd tmux interactive colour prompt history keyring fb )
 #_debug_bashrc=( keyring )
 for i in "${_bashrcs[@]}"
 do
-    _bashrc_source $i
+    _bashrc_source $HOME/.bash/$i
 done
 unset _bashrcs
 
