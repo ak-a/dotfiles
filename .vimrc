@@ -239,5 +239,3 @@ endif
 let g:ycm_path_to_python_interpreter = '/data/users/aka4/fbsource/fbcode/third-party-buck/gcc-5-glibc-2.23/build/python/2.7/bin/python2.7'
 " Default ycm_extra_conf.py for fbcode
 let g:ycm_global_ycm_extra_conf = '/home/aka4/.vim/bundle/YouCompleteMe/ycm_extra_conf_fbcode.py'
-
-source $HOME/.vim/fbrc

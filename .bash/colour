@@ -1,0 +1,88 @@
+#!/bin/bash
+# shellcheck disable=SC2154,SC1117,SC1090
+
+function colourES()
+{
+    local colour
+
+    colour=$(rgbto256 $1)
+
+    if [[ -n ${colour} ]];then
+        tput ${2:-setaf} ${colour}
+    else
+        echo "No such colour $1" >&2
+    fi
+}
+
+function quotedcolorES()
+{
+    local uqc bs
+    uqc="$(colourES $1 $2)"
+    bs="\\"
+    [[ ${#uqc} == 0 ]] && return
+
+    echo "${bs}[${uqc}${bs}]"
+}
+
+# a bit complicated - if we have a colour we don't re-generate
+# makes subshells quicker to start, but...
+# if we have a new TERM then we should re-generate just in case.
+unquotedcolour()
+{
+    eval export $1=\"\$\(colourES $2 $3\)\"   
+    _colours_cache+=($1)
+}
+
+quotedcolour()
+{
+    # shellcheck disable=SC1083
+    eval export $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
+    _colours_cache+=($1)
+}
+
+generate_colours()
+{
+    # create my fg and bg colours - searches rgb.txt for
+    # the colour and converts to ANSI color cube that is
+    # 6x6x6 (dec not bits)
+    if [[ -n $TERM ]]; then 
+	setab=
+	for g in f b
+	do
+	    for c in red yellow steelblue3 black green cyan purple white \
+		red3 darkgreen grey93 sandybrown grey42 green3 Khaki1 red1
+	    do
+		quotedcolour _${g}g_$c $c $setab
+		unquotedcolour _uq_${g}g_$c $c $setab
+	    done
+	    setab=setab
+	done
+      fi
+
+}
+
+cache_colours() # output file
+{
+    local v
+    for v in ${_colours_cache[@]}
+    do
+	typeset -p $v
+    done
+}
+
+_tput_cache=/tmp/tput.${UID}.${TERM}.cache
+if [[ -r ${_tput_cache} ]]; then
+    source ${_tput_cache}
+else
+    declare -a _colours_cache
+    generate_colours
+    cache_colours > $_tput_cache
+fi
+
+# no idea why these won't cache, ignore for now
+export NO_COLOUR_UQ="$(tput sgr0)"
+export NO_COLOUR="\[${NO_COLOUR_UQ}\]"
+export CLEAR_EOL="$(tput el)"
+
+    #REVERSE="\[$(tput rev)\]"
+    #_colours_cache+=(NO_COLOUR_UQ NO_COLOUR CLEAR_EOL)
