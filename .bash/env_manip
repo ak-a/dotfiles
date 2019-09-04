@@ -55,19 +55,23 @@ _VarPrepend()
 PrependPath() { _VarPrepend PATH "$@"; }
 AppendPath() { _VarAppend PATH "$@"; }
 
-_remove_path_dupes()        # reads PATH and keeps order, but removes trailing dupes
+_remove_var_dupes()        # <var> [<sep>] reads $var and keeps order, but removes trailing dupes, separated by <sep>, default ':'
 {
     local IFS
-    local -a patharray strippedpath newpath
-    IFS=:
-    patharray=($PATH)
-    for p in "${patharray[@]}"
+    local -a vararry strippedvar newvar
+    IFS=${2:-:}
+    eval vararry=(\$$1)
+    for p in "${vararry[@]}"
     do
-        strippedpath=(${strippedpath[@]%%#$p})
-        strippedpath+=("#$p")
+        strippedvar=(${strippedvar[@]%%#$p})
+        strippedvar+=("#$p")
     done
     unset IFS
     # shellcheck disable=SC2068
-    newpath=$(printf "%s:" ${strippedpath[@]/##})
-    PATH=${newpath/%:}
+    newvar=$(printf "%s${2:-:}" ${strippedvar[@]/##})
+    eval $1=${newvar/%${2:-:}}
+}
+_remove_path_dupes()        # reads PATH and keeps order, but removes trailing dupes
+{
+    _remove_var_dupes PATH
 }

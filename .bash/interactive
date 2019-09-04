@@ -29,3 +29,15 @@ function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
 
 alias egit='git -c http.proxy=fwdproxy:8080 -c https.proxy=fwdproxy:8080'
 export SHELLCHECK_OPTS="-e SC2086 -e SC2046"
+
+gofind() { # [dir] [test]
+    local testarg
+    testarg=true
+    [[ -z $2 ]] && testarg='! -name "*_test.go"'
+
+    find ${1:-.} \( -name "*.go" -a $testarg \) -print0
+}
+
+gogrep() {
+    gofind $2 $3 | xargs -0 grep $4 -e "$1"
+}
