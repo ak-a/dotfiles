@@ -120,53 +120,16 @@ set wildignore=*.o,*.bnd,*~
 
 set hlsearch
 
-" bash is our sh default
-let g:is_bash=1
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-" Override if needed....
-let g:syntastic_enable_perl_checker = 1
-let g:syntastic_perl_checkers = ['perl', 'perlcritic']
-let g:syntastic_python_checkers = ['python3', 'pyflakes3']
-" others... , 'flake8', 'pycodestyle'
-
-"VC stuff....
-let g:vc_browse_cache_all = 1
-
-"airline
-let g:airline#extensions#branch#use_vcscommand = 1
-
-" Pathogen stuff... but only for 7.3 or above
-
-let python_highlight_all=1
-if v:version >= 702
-    execute pathogen#infect('bundle/{}')
-    set statusline+=%#warningmsg#
-    set statusline+=%{SyntasticStatuslineFlag()}
-    set statusline+=%*
-endif
-
+" Terminal bits
 if &term =~ '256c'
     "set t_ut=
     set t_Co=256
     "colourscheme desert
     "let g:seoul256_background=255
     "colorscheme solarized8
-    colorscheme PaperColor
 endif
 
 filetype plugin indent on
-
-let g:pydiction_location = $HOME
-let g:pydiction_location += '/.vim/bundle/pydiction/complete-dict' 
-
-"let g:ycm_autoclose_preview_window_after_completion=1
-let g:ycm_filetype_whitelist = { '*.py': 1}
-"map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
-
 
 " console menu
 set wildmenu
@@ -174,14 +137,6 @@ set cpo-=<
 set wcm=<C-Z>
 set encoding=utf-8
 set fillchars+=vert:│
-
-" fb specific
-set tags=tags;/
-
-let g:airline_theme='light'
-if filereadable("~/.vim/biggrep.vim")
-  source ~/.vim/biggrep.vim
-endif
 
 " Focus and auto-reload stuff
 augroup wincent_term
@@ -229,13 +184,3 @@ onoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>
 vnoremap <silent> <f20> <Esc>:silent doautocmd FocusLost %<cr>gv
 vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
 
-set termguicolors
-if &term =~# '^screen'
-  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-endif
-
-" YCM must use the same Python version it's linked against
-let g:ycm_path_to_python_interpreter = '/data/users/aka4/fbsource/fbcode/third-party-buck/gcc-5-glibc-2.23/build/python/2.7/bin/python2.7'
-" Default ycm_extra_conf.py for fbcode
-let g:ycm_global_ycm_extra_conf = '/home/aka4/.vim/bundle/YouCompleteMe/ycm_extra_conf_fbcode.py'
