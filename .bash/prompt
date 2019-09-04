@@ -7,7 +7,7 @@
 set_inuse() {
     local inusec
     local inusep
-        if [[ $(stat -fc '%b' .) -eq 0 ]]; then
+    if [[ $(stat -fc '%b' .) -eq 0 ]]; then
         inuse="${_uq_fg_red3} -- ${_defc}"
     else
         inusep=$(($(stat -fc '(%b-%a)*100/%b' .)))
@@ -32,7 +32,8 @@ print_prompt() {
     printf '%s%s: %s' ${_defc} ${_uq_fg_red3} "${_PROMPT_EXIT}"
     printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
     printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
-    printf '%s %s %s ; %s\n' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH} ${CLEAR_EOL}
+    printf '%s %s %s ; ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
+    printf '%s%s\n' ${CLEAR_EOL} ${NO_COLOUR_UQ}
 }
 
 tmux_prompt() {
