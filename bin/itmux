@@ -4,5 +4,7 @@
 
 [ -z "$TMUX" ] && { echo Not in tmux, expect to be inside tmux; exit 1; }
 [ -z "$1" ] && { echo No name specified, exit time; exit 1; }
+
 export TMUX_SOCKET="-L outer"
+
 tmux_window $1 outer "tmux-inner $1"
