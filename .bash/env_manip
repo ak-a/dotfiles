@@ -22,7 +22,7 @@ _VarRemove()
     new=(${new[@]//#})
     IFS=:
     eval "$1"="${new[*]}"
-}
+}       # grr syntax check "
 
 _VarAppend()
 # VAR value, VAR=$VAR:$value equivalent
@@ -40,6 +40,7 @@ _VarAppend()
 
 _VarPrepend()
 # VAR value, VAR=$value:$VAR equivalent
+# duplicates are removed
 {
     local var=$1
     shift
@@ -52,14 +53,28 @@ _VarPrepend()
     done
 }
 
-PrependPath() { _VarPrepend PATH "$@"; }
-AppendPath() { _VarAppend PATH "$@"; }
+_pendPath() { # Pre/Ap dir...
+    local pre_ap
+    pre_ap=$1; shift
+    for path in "$@"
+    do
+        [[ -d "$path/" ]] || {
+            echo "${FUNCNAME[0]}: '$path' not a directory, skipping"
+            continue
+        }
+        eval _Var${pre_ap}pend PATH \"$path\"
+    done
+}
+PrependPath() { _pendPath Pre "$@"; }
+AppendPath() { _pendPath Ap "$@"; }
 
 _remove_var_dupes()        # <var> [<sep>] reads $var and keeps order, but removes trailing dupes, separated by <sep>, default ':'
 {
     local IFS
     local -a vararry strippedvar newvar
-    IFS=${2:-:}
+    local sep
+    sep=${2:-:}         # default is colon
+    IFS=${sep}
     eval vararry=(\$$1)
     for p in "${vararry[@]}"
     do
@@ -68,8 +83,9 @@ _remove_var_dupes()        # <var> [<sep>] reads $var and keeps order, but remov
     done
     unset IFS
     # shellcheck disable=SC2068
-    newvar=$(printf "%s${2:-:}" ${strippedvar[@]/##})
-    eval $1=${newvar/%${2:-:}}
+    newvar=$(printf "%s${sep}" ${strippedvar[@]/##})
+    # remove extra trailing separator
+    eval $1=${newvar/%${sep}}
 }
 _remove_path_dupes()        # reads PATH and keeps order, but removes trailing dupes
 {
