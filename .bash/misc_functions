@@ -64,3 +64,20 @@ bgrm() {
     command rm -rf ${TMPDIR}
     ) &
 }
+
+gitrmsubmodule() {
+    [[ -d .git ]] || {
+        echo "Run from top-level git directory please, .git directory not found"
+        return 1
+    }
+    for sm in "$@"
+    do
+        [[ -d .git/modules/$sm ]] || {
+            echo "Submodule $sm not found in .git/modules, skipping"
+            continue
+        }
+        rm -rf $sm
+        git gitrmsubmodule deinit -f -- $sm
+        rm -rf .git/modules/$sm
+    done
+}
