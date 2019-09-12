@@ -1,15 +1,3 @@
-[submodule ".vim/allbundles/YouCompleteMe"]
-	path = .vim/allbundles/YouCompleteMe
-	url = https://github.com/Valloric/YouCompleteMe
-[submodule ".vim/allbundles/vim-tmux-focus-events"]
-	path = .vim/allbundles/vim-tmux-focus-events
-	url = https://github.com/tmux-plugins/vim-tmux-focus-events
 [submodule ".tmux/plugins/tpm"]
 	path = .tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm
-[submodule ".vim/allbundles/vim-tmux"]
-	path = .vim/allbundles/vim-tmux
-	url = https://github.com/tmux-plugins/vim-tmux
-[submodule ".vim/allbundles/vim-flake8"]
-	path = .vim/allbundles/vim-flake8
-	url = https://github.com/nvie/vim-flake8.git
