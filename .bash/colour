@@ -19,7 +19,7 @@ function quotedcolorES()
     local uqc bs
     uqc="$(colourES $1 $2)"
     bs="\\"
-    [[ ${#uqc} == 0 ]] && return
+    [[ ${#uqc} == 0 ]] && returnSH_VERSINFO
 
     echo "${bs}[${uqc}${bs}]"
 }
@@ -66,7 +66,13 @@ cache_colours() # output file
     local v
     for v in ${_colours_cache[@]}
     do
-	typeset -p $v | sed -e 's/-x/-xg/'
+	typeset -p $v | {
+            if [[ ${BASH_VERSINFO[0]} -ge 5 ]]; then
+                sed -e 's/-x/-xg/'
+            else
+                sed -e 's/declare -x/export/'
+            fi
+        }
     done
 }
 
