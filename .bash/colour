@@ -1,6 +1,12 @@
 #!/bin/bash
 # shellcheck disable=SC2154,SC1117,SC1090
 
+if [[ ${BASH_VERSINFO[0]} -ge 5 ]]; then
+    declare -r DECLARE_XG="declare -xg"
+else
+    declare -r DECLARE_XG="export"
+fi
+
 function colourES()
 {
     local colour
@@ -29,14 +35,14 @@ function quotedcolorES()
 # if we have a new TERM then we should re-generate just in case.
 unquotedcolour()
 {
-    eval declare -xg $1=\"\$\(colourES $2 $3\)\"
+    eval $DECLARE_XG $1=\"\$\(colourES $2 $3\)\"
     _colours_cache+=($1)
 }
 
 quotedcolour()
 {
     # shellcheck disable=SC1083
-    eval declare -xg $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
+    eval $DECLARE_XG $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
     _colours_cache+=($1)
 }
 
