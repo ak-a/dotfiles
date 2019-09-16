@@ -88,9 +88,9 @@ if [[ -r ${_tput_cache} ]]; then
 else
     declare -a _colours_cache
     generate_colours
-    declare -xg NO_COLOUR_UQ="$(tput sgr0)"
-    declare -xg NO_COLOUR="\[${NO_COLOUR_UQ}\]"
-    declare -xg CLEAR_EOL="$(tput el)"
+    $DECLARE_XG NO_COLOUR_UQ="$(tput sgr0)"
+    $DECLARE_XG NO_COLOUR="\[${NO_COLOUR_UQ}\]"
+    $DECLARE_XG CLEAR_EOL="$(tput el)"
     _colours_cache+=(NO_COLOUR_UQ NO_COLOUR CLEAR_EOL)
     cache_colours > $_tput_cache
 fi
