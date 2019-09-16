@@ -85,15 +85,15 @@ function _bashrc_source() {  # file
     # to the list of files sourced, then we can monitor if we are out
     # of date and warn the shell may need to be reloaded or just source the
     # file that has been updated
-    local _bashrc
+    local _bashrc _bashrc_file _bashrc_ms
     _bashrc=$1
-    local _bashrc_ms
+    _bashrc_file=${_bashrc##*/}
 
     # shellcheck disable=SC1090
     [[ -r $_bashrc ]] && {
         _bashrc_sources+=( $_bashrc )
         # if we want to debug and individual bashrc
-	[[ " ${#_debug_bashrc[@]} " =~ \ $1\  ]] && {
+	[[ " ${_debug_bashrc[@]} " =~ \ ${_bashrc_file}\  ]] && {
 	    exec 5>> /tmp/bashtrace.$$.txt
 	    BASH_XTRACEFD=5
 	    set -x
@@ -102,7 +102,7 @@ function _bashrc_source() {  # file
         source "$_bashrc"
 	let _bashrc_ms=$(date +%s%3N)-_bashrc_ms
         ## check if we are debugging _bashrc all before switching off set -x
-	[[ " ${_debug_bashrc[@]} " =~ \ $1\   && ! -r $HOME/.bashrc.debug ]] && set +x
+	[[ " ${_debug_bashrc[@]} " =~ \ ${_bashrc_file}\  && ! -r $HOME/.bashrc.debug ]] && set +x
 	_bashrc_source_ms[${_bashrc}]=$_bashrc_ms
 	[[ -n $BASH_XTRACEFD ]] && echo "TIME: source $_bashrc: ${_bashrc_ms}ms" >&5
         touch ${BASHRC_LAST_SOURCE}
@@ -138,8 +138,8 @@ mkdir -p ${BASHRCDIR}
 BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
 #trapadd "_bashrc_each" DEBUG
 
-_bashrcs=( debug.bash env_manip misc_functions cd tmux interactive colour prompt history keyring fb )
-#_debug_bashrc=( keyring )
+_bashrcs=( debug.bash env_manip misc_functions interactive tmux colour prompt cd history keyring fb )
+_debug_bashrc=( none )
 for i in "${_bashrcs[@]}"
 do
     _bashrc_source $HOME/.bash/$i

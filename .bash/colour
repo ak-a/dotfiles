@@ -29,14 +29,14 @@ function quotedcolorES()
 # if we have a new TERM then we should re-generate just in case.
 unquotedcolour()
 {
-    eval export $1=\"\$\(colourES $2 $3\)\"   
+    eval declare -xg $1=\"\$\(colourES $2 $3\)\"
     _colours_cache+=($1)
 }
 
 quotedcolour()
 {
     # shellcheck disable=SC1083
-    eval export $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
+    eval declare -xg $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
     _colours_cache+=($1)
 }
 
@@ -66,7 +66,7 @@ cache_colours() # output file
     local v
     for v in ${_colours_cache[@]}
     do
-	typeset -p $v
+	typeset -p $v | sed -e 's/-x/-xg/'
     done
 }
 
@@ -76,13 +76,11 @@ if [[ -r ${_tput_cache} ]]; then
 else
     declare -a _colours_cache
     generate_colours
+    declare -xg NO_COLOUR_UQ="$(tput sgr0)"
+    declare -xg NO_COLOUR="\[${NO_COLOUR_UQ}\]"
+    declare -xg CLEAR_EOL="$(tput el)"
+    _colours_cache+=(NO_COLOUR_UQ NO_COLOUR CLEAR_EOL)
     cache_colours > $_tput_cache
 fi
 
-# no idea why these won't cache, ignore for now
-export NO_COLOUR_UQ="$(tput sgr0)"
-export NO_COLOUR="\[${NO_COLOUR_UQ}\]"
-export CLEAR_EOL="$(tput el)"
 
-    #REVERSE="\[$(tput rev)\]"
-    #_colours_cache+=(NO_COLOUR_UQ NO_COLOUR CLEAR_EOL)
