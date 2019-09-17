@@ -59,9 +59,15 @@ bashrc()
 bgrm() {
     (
     set -e
-    TMPDIR=$(mktemp -d bgrm.XXXXXXXX)
-    mv "$@" ${TMPDIR}
-    command rm -rf ${TMPDIR}
+    local dir
+    for dir in "$@"
+    do
+        cd "$dir"/..
+        TMPDIR=$(mktemp -d bgrm.XXXXXXXX)
+        mv "$dir" ${TMPDIR}
+        command rm -rf ${TMPDIR} &
+    done
+    wait
     ) &
 }
 
