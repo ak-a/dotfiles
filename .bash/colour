@@ -1,10 +1,12 @@
 #!/bin/bash
 # shellcheck disable=SC2154,SC1117,SC1090
 
-if [[ ${BASH_VERSINFO[0]} -ge 5 ]]; then
-    declare -r DECLARE_XG="declare -xg"
-else
-    declare -r DECLARE_XG="export"
+if [[ -z $DECLARE_XG ]]; then
+    if [[ ${BASH_VERSINFO[0]} -ge 5 ]]; then
+        declare -r DECLARE_XG="declare -xg"
+    else
+        declare -r DECLARE_XG="export"
+    fi
 fi
 
 function colourES()
