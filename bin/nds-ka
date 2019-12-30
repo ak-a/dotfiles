@@ -1,0 +1,70 @@
+#!/bin/bash
+
+message=echo
+tty -s || message=":"
+
+is_nds_active() {
+    case $(xdotool getactivewindow getwindowname) in
+        *NDS*)
+            return 0;;
+    esac
+    return 1
+}
+
+x_inactive_minutes() {
+    local x_inactive_ms
+    local x_inactive_minutes
+
+    x_inactive_ms=$(xprintidle)
+    let x_inactive_minutes=x_inactive_ms/1000/60
+    echo $x_inactive_minutes
+}
+
+nds_keypress() {
+    if [ -n "$(xdotool search --name NDS)" ]; then
+        $message -n Key press.
+        xdotool search --name NDS key Scroll_Lock
+        $message -n .
+        sleep 1
+        xdotool search --name NDS key Scroll_Lock
+        $message .
+    fi
+}
+
+nds_mouse_move() {
+    if [ -n "$(xdotool search --name NDS)" ]; then
+        $message -n Mouse move.
+        xdotool search --name NDS mousemove_relative --sync --  1 0 
+        $message -n .
+        sleep 1
+        xdotool search --name NDS mousemove_relative --sync -- -1 0 
+        $message .
+    else
+        $message No NDS window found
+    fi
+}
+
+# minutes
+NDS_ACTIVE_TO=5
+NDS_INACTIVE_TO=6
+
+let nds_inactive_time=0
+
+while true
+do
+    if is_nds_active; then
+        if [ $(x_inactive_minutes) -ge $NDS_ACTIVE_TO ]; then
+#            echo Mouse move for active NDS
+            nds_mouse_move
+        fi
+    else
+        let nds_inactive_seconds=$(date +%s)-nds_inactive_time
+        let nds_inactive=nds_inactive_seconds/60
+        if [ $nds_inactive -ge $NDS_INACTIVE_TO ]; then
+#            echo Mouse move for background NDS
+            nds_keypress
+            let nds_inactive_time=$(date +%s)
+        fi
+    fi
+    sleep 10
+done
