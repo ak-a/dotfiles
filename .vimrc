@@ -101,6 +101,7 @@ set ignorecase
 set incsearch
 set iskeyword=a-z,A-Z,48-57,_
 set laststatus=2
+set modeline
 set ruler
 set shiftwidth=4
 set sts=4
