@@ -172,6 +172,9 @@ function! s:RunFocusGainedAutocmd()
   return cmdline
 endfunction
 
+" Remove trailing space for most file types
+autocmd FileType c,cpp,java,php,json,yaml,python autocmd BufWritePre <buffer> %s/\s\+$//e
+
 execute "set <f20>=\<Esc>[O"
 execute "set <f21>=\<Esc>[I"
 cnoremap <silent> <f20> <c-\>e<SID>RunFocusLostAutocmd()<cr>
