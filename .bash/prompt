@@ -37,7 +37,7 @@ print_prompt() {
 }
 
 tmux_prompt() {
-    if [ -n "$TMUX" ]; then
+    if [[ -n $TMUX ]]; then
         _tmux_ps=$(tmux list-pane -F "#{session_name}:#{window_index}:#{pane_index}:#{pane_active}" |
                     awk -F: ' $4 == 1 { session=$1 ":" $2; pindex=$3; } 
                             END     {
