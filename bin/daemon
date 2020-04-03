@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#SOURCEME or run directly
+
+daemon() { # PID_FILE CMD+ARGS to execute
+    local PID_FILE
+
+    PID_FILE=$1
+    shift
+
+    (
+        strace -f -e trace=process,fork,clone -o "|${_GAWK_PROCESSOR} -vPID_FILE=$PID_FILE" "$@"
+        rm -f $PID_FILE
+    ) &
+}
+
+daemon_pids() { # PID_FILE
+    cat $1
+}
+
+_GAWK_PROCESSOR=$(cd ${BASH_SOURCE%/*}; pwd)/${BASH_SOURCE##*/}.strace.awk
+
+if [[ $0 == $BASH_SOURCE ]] ; then
+    # we are being run, not sourced, which is OK
+    daemon "$@"
+fi
