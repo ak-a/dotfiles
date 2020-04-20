@@ -1,0 +1,129 @@
+#!/bin/bash
+
+if [ $(id -un) = root ]; then
+    sudo -u andrew -- $0 "$@"
+    chown -R andrew:plex /nas/media
+fi
+
+
+get_iplayer_running() {
+    pdir=$1
+    pvr_lock=$pdir/pvr_lock
+    # if we have a lock file then something might be running
+    if [ -r $pvr_lock ]; then
+	gi_pid=$(cat $pvr_lock)
+	# check if the lock file corresponds to the iplayer
+	# in particular the profile directory
+	#if ps -o args= -p $gi_pid | grep -q $pdir; then
+        if [[ $(pgrep -a -p $gi_pid) =~ .*pdir.* ]]; then
+	    return 0
+	else
+	    # lock file is stale, remove and we say not running
+	    rm -f $pvr_lock
+	fi
+    fi
+    return 1
+}
+
+iplayer_get() {
+    local -a args
+    local pdir new_downloads hour
+    pdir=$1; shift
+    new_downloads=new_downloads.$$
+
+    args=(--profile-dir .)
+    if [[ $# -eq 0 ]]; then
+	touch $new_downloads
+        args+=(--command "echo <filename> >> $new_downloads")
+        args+=(--pvr)
+        tty -s || args+=( --hash)
+    else
+        args+=("${@}")
+    fi
+    if [[ ! ${args[*]} =~ --pvr- ]]; then
+        hour=$(date +%_H)
+        [[ $hour -gt 6 && $hour -lt 23 ]] && args+=(--throttle 20)
+    fi
+    (
+	cd $pdir || exit $?
+	set -x
+	nice -n 19 -- ionice -c 3 -- get_iplayer "${args[@]}"
+    ) 2>&1
+    [[ -s $new_downloads ]] || { rm -f $new_downloads; return; }
+    echo "-------------------- get_iplayer done --------------"
+    wc -l $new_downloads
+    sort -u -o $new_downloads $new_downloads
+
+    echo Moving $(wc -l < $pdir/$new_downloads) files
+    while read -r file
+    do
+	dest=${file/\/download/}
+	destdir=$(dirname "$dest")
+	(
+	    [ -d "$destdir" ] || mkdir -p "$destdir"
+	    set -x
+	    mv "$file" "$destdir"
+	)
+    done < $pdir/$new_downloads
+
+    # make sure we have the ownership right
+    find /nas/media -type f -print0 | xargs -0 chmod 0664
+    find /nas/media -type d -print0 | xargs -0 chmod 0775
+}
+
+iplayer_pvr() {
+    tty -s || exec >> /var/log/iplayer_pvr.log 2>&1
+
+    echo $0 STARTING: $(date)
+    echo "========================================"
+    # run iplayer pvr for each of the types...
+    # films no longer works, so stop wasting time for now
+    for type in radio tv # films 
+    do
+        echo "$0: get_iplayer for $type $(date) --------------------"
+        echo
+        pdir=/home/get_iplayer/$type
+        if get_iplayer_running $pdir; then
+            echo "get_iplayer is running (pid=$gi_pid), skipping"
+            continue
+        fi
+        output=$(sed -n -e '/^output /s/^output //p' $pdir/options)
+        [ -d "$output" ] || mkdir -p "$output"
+
+        iplayer_get $pdir
+        if test -s $pdir/$new_downloads; then
+            mv $pdir/$new_downloads $pdir/pvr-$(date +%Y-%m-%d-%H-%M)
+        else
+            rm -f $pdir/$new_downloads
+        fi
+
+        PVRD=$pdir/pvr-downloads
+        [ -d $PVRD ] || mkdir $PVRD
+        find $pdir -maxdepth 1 -name "pvr-*" -mtime +7 -print -delete
+
+        echo "Checking $output should be empty..."
+        find "$output" -type f -print
+        echo "Cleaning empty directories..."
+        find "$output" -depth -mindepth 1 -type d -print -delete;
+        echo; echo
+    done
+}
+
+case $(basename $0) in
+    iplayer_pvr)
+        iplayer_pvr && exit $?
+        ;;
+    tv*)
+        pdir=tv;;
+    *film*)
+        pdir=films;;
+    *radio*)
+        pdir=radio;;
+    *)
+        echo $0: huh?
+        exit 1
+        ;;
+esac
+
+
+iplayer_get /home/get_iplayer/$pdir "$@"
