@@ -10,6 +10,7 @@ let g:syntastic_enable_perl_checker = 1
 let g:syntastic_perl_checkers = ['perl', 'perlcritic']
 let g:syntastic_python_checkers = ['python3', 'pyflakes3']
 " others... , 'flake8', 'pycodestyle'
+let g:syntastic_shell_checkers = ['shellcheck']
 
 "VC stuff....
 let g:vc_browse_cache_all = 1

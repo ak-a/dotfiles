@@ -188,3 +188,5 @@ onoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>
 vnoremap <silent> <f20> <Esc>:silent doautocmd FocusLost %<cr>gv
 vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
 
+source $HOME/.vim/syntastic.vimrc
+
