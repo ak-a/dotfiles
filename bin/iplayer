@@ -1,0 +1,75 @@
+#!/bin/bash
+
+FIFO=/tmp/iplayer_fifo
+if [[ ! -p $FIFO ]]; then
+    rm -f $FIFO
+    mkfifo $FIFO
+fi
+
+start_daemon() {
+    local type pid gi recursive
+
+    while read type pid
+    do
+        gi=tvgi recursive=
+        case $type in
+            *film*)
+                gi=filmgi
+                ;;
+            *pr)
+                recursive=--pid-recursive
+                ;;
+        esac
+        (
+            set -x
+            $gi "$pid" $recursive
+        )
+        bash /nas/media/download/mv-video
+    done < $FIFO
+}
+
+cmdline() {
+    cut -d '' -f2 /proc/$1/cmdline
+}
+
+iplayer_daemon() {
+    local pid cmdline
+    while true      # no point returning unless we have a daemon running to read the fifo
+    do
+        [[ -r ${FIFO}.pid ]] && read pid cmdline < ${FIFO}.pid
+        [[ -n $pid && -d /proc/$pid && $(cmdline $pid) == $cmdline ]] && {
+            echo "Daemon running: $(<${FIFO}.pid)"
+            return 0
+        }
+        rm -f ${FIFO}.pid
+        start_daemon &
+        pid=$!
+        echo $pid $(cmdline $pid) > ${FIFO}.pid
+        echo "Started daemon: $(<${FIFO}.pid)"
+        sleep 1
+    done
+}
+
+iplayer_daemon
+
+{
+    if [[ $# -eq 2 ]]; then
+        echo "$@"
+        exit 0
+    fi
+    if [[ $1 =~ https://www.bbc.co.uk/iplayer/episodes/[a-z0-9]{8}/.* ]]; then
+        pid=$(echo $1 | cut -d/ -f6)
+        echo "Request series $(echo $1 | cut -d/ -f6-)" >&2
+        echo "pr --pid=${pid}"
+        exit 0
+    fi
+    if [[ $1 =~ https://www.bbc.co.uk/iplayer/episode/[a-z0-9]{8}/.*series.* ]]; then
+        echo "Request tv episode $(echo $1 | cut -d/ -f6-)" >&2
+        echo tv $1
+        exit 0
+    fi
+    echo "Request film $(echo $1 | cut -d/ -f7-)" >&2
+    echo film $1
+    exit 0
+} >> ${FIFO}
+
