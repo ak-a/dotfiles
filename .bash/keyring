@@ -2,10 +2,10 @@
 
 _check_agent_alive() {
 
-    local _cmdline
+    local cmdline
     if [[ -d /proc/${SSH_AGENT_PID} ]]; then
-        read cmdline < /proc/${SSH_AGENT_PID}/cmdline
-        if [[ ${cmdline} = ssh-agent ]]; then
+        read -r cmdline < /proc/${SSH_AGENT_PID}/cmdline
+        if [[ ${cmdline} =~ ssh-agent ]]; then
             ssh-add -l &> /dev/null
             case $? in
                 2)
