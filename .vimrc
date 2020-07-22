@@ -9,7 +9,7 @@ set bg=light
 " for scroll-wheel
 if &term =~ "screen"         
     set mouse=a
-    set ttymouse=xterm2
+    set ttymouse=sgr
 endif
 
 "set viminfo='1000,f1,<200,/100,:100,@100,%
@@ -190,3 +190,4 @@ vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
 
 source $HOME/.vim/syntastic.vimrc
 
+syntax on
