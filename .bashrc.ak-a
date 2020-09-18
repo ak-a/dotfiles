@@ -160,3 +160,4 @@ fi
 
 # just in case we have been debugging
 set +x
+unset BASH_XTRACEFD
