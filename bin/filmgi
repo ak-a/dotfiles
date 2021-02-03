@@ -5,7 +5,6 @@ if [ $(id -un) = root ]; then
     chown -R andrew:plex /nas/media
 fi
 
-
 get_iplayer_running() {
     pdir=$1
     pvr_lock=$pdir/pvr_lock
@@ -27,14 +26,16 @@ get_iplayer_running() {
 
 iplayer_get() {
     local -a args
-    local pdir new_downloads hour
+    local pdir hour output final_output subdirformat
     pdir=$1; shift
-    new_downloads=new_downloads.$$
+
+    output=$(sed -n -e '/^output /s/^output //p' $pdir/options)
+    [ -d "$output" ] || mkdir -p "$output"
+    subdirformat=$(sed -n -e '/^subdirformat /s/^subdirformat //p' $pdir/options)
+    final_output=${output/download\//}${subdirformat}    # we remove /download from the path
 
     args=(--profile-dir .)
     if [[ $# -eq 0 ]]; then
-	touch $new_downloads
-        args+=(--command "echo <filename> >> $new_downloads")
         args+=(--pvr)
         tty -s || args+=( --hash)
     else
@@ -44,27 +45,15 @@ iplayer_get() {
         hour=$(date +%_H)
         [[ $hour -gt 6 && $hour -lt 23 ]] && args+=(--throttle 20)
     fi
+    if [[ ! ${args[*]} =~ --pvr-add ]]; then
+        args+=(--command "mkdir -p '$final_output'; mv -v -t '$final_output' '<filename>'")
+    fi
     (
 	cd $pdir || exit $?
 	set -x
 	nice -n 19 -- ionice -c 3 -- get_iplayer "${args[@]}"
     ) 2>&1
-    [[ -s $new_downloads ]] || { rm -f $new_downloads; return; }
     echo "-------------------- get_iplayer done --------------"
-    wc -l $new_downloads
-    sort -u -o $new_downloads $new_downloads
-
-    echo Moving $(wc -l < $pdir/$new_downloads) files
-    while read -r file
-    do
-	dest=${file/\/download/}
-	destdir=$(dirname "$dest")
-	(
-	    [ -d "$destdir" ] || mkdir -p "$destdir"
-	    set -x
-	    mv "$file" "$destdir"
-	)
-    done < $pdir/$new_downloads
 
     # make sure we have the ownership right
     find /nas/media -type f -print0 | xargs -0 chmod 0664
@@ -87,19 +76,8 @@ iplayer_pvr() {
             echo "get_iplayer is running (pid=$gi_pid), skipping"
             continue
         fi
-        output=$(sed -n -e '/^output /s/^output //p' $pdir/options)
-        [ -d "$output" ] || mkdir -p "$output"
 
         iplayer_get $pdir
-        if test -s $pdir/$new_downloads; then
-            mv $pdir/$new_downloads $pdir/pvr-$(date +%Y-%m-%d-%H-%M)
-        else
-            rm -f $pdir/$new_downloads
-        fi
-
-        PVRD=$pdir/pvr-downloads
-        [ -d $PVRD ] || mkdir $PVRD
-        find $pdir -maxdepth 1 -name "pvr-*" -mtime +7 -print -delete
 
         echo "Checking $output should be empty..."
         find "$output" -type f -print
