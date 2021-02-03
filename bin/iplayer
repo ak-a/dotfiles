@@ -9,23 +9,27 @@ fi
 start_daemon() {
     local type pid gi recursive
 
-    while read type pid
+    while true
     do
-        gi=tvgi recursive=
-        case $type in
-            *film*)
-                gi=filmgi
-                ;;
-            *pr)
-                recursive=--pid-recursive
-                ;;
-        esac
-        (
-            set -x
-            $gi "$pid" $recursive
-        )
-        bash /nas/media/download/mv-video
-    done < $FIFO
+        while read -r type pid
+        do
+            gi=tvgi recursive=
+            case $type in
+                *film*)
+                    gi=filmgi
+                    ;;
+                *pr)
+                    recursive=--pid-recursive
+                    ;;
+            esac
+            (
+                set -x
+                $gi "$pid" $recursive
+            )
+            bash /nas/media/download/mv-video
+        done < $FIFO
+        sleep 10
+    done
 }
 
 cmdline() {
@@ -36,13 +40,13 @@ iplayer_daemon() {
     local pid cmdline
     while true      # no point returning unless we have a daemon running to read the fifo
     do
-        [[ -r ${FIFO}.pid ]] && read pid cmdline < ${FIFO}.pid
-        [[ -n $pid && -d /proc/$pid && $(cmdline $pid) == $cmdline ]] && {
+        [[ -r ${FIFO}.pid ]] && read -r pid cmdline < ${FIFO}.pid
+        [[ -n $pid && -d /proc/$pid && $(cmdline $pid) == "$cmdline" ]] && {
             echo "Daemon running: $(<${FIFO}.pid)"
             return 0
         }
         rm -f ${FIFO}.pid
-        start_daemon &
+        start_daemon < /dev/null &
         pid=$!
         echo $pid $(cmdline $pid) > ${FIFO}.pid
         echo "Started daemon: $(<${FIFO}.pid)"
