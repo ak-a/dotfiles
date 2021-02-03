@@ -46,11 +46,6 @@ tmux_prompt() {
                                         } else {
                                             printf session; }
                                     }')
-        #repo="$(_scm_repo)"
-        local report
-        if [[ -n $report ]]; then
-            tmux rename-window "${report}"
-        fi
     fi
 }
 

@@ -17,13 +17,12 @@ _tmux_temp_window_name() {  # name command
     local LC_ALL=C
     local _nwn=$1
     shift
+
     [[ -n $TMUX ]] && {
         tmux rename-window "${_nwn}"
+        trap "tmux set-window-option automatic-rename on" RETURN
     }
     command "$@"
-    [[ -n $TMUX ]] && {
-        tmux set-window-option automatic-rename on > /dev/null
-    }
 }
 
 ssh()
