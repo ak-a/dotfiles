@@ -36,7 +36,7 @@ iplayer_get() {
 
     args=(--profile-dir .)
     if [[ $# -eq 0 ]]; then
-        args+=(--pvr)
+        args+=(--pvr --refresh --refresh-future --cache-rebuild --refresh-limit 30)
         tty -s || args+=( --hash)
     else
         args+=("${@}")
@@ -102,6 +102,5 @@ case $(basename $0) in
         exit 1
         ;;
 esac
-
 
 iplayer_get /home/get_iplayer/$pdir "$@"
