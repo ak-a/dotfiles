@@ -12,13 +12,11 @@ if &term =~ "screen"
     set ttymouse=sgr
 endif
 
-"set viminfo='1000,f1,<200,/100,:100,@100,%
 " mappings
 imap  mxBi\fB`x   a\fR
 imap  a. hbmmi?\<2h"zdt.@zywmx`mPbea dwbis"zdt.x@z
 imap  :w
 imap  pa
-imap  :q!
 imap  ZZ
 imap Î H
 imap ÎÔ "*P
@@ -48,10 +46,6 @@ nnoremap ;v :vsplit
 nnoremap <C-BS>  xi
 nnoremap K i r
 nnoremap [,] :s/\(.*\),\(.*)/\2,\1/
-nnoremap [2 :set ts=3
-nnoremap [3 :set ts=3
-nnoremap [4 :set ts=4
-nnoremap [8 :set ts=8
 nnoremap [=] :s/\([^        ]*\) *= *\(.*\);/\2 = \1;
 nnoremap [F !}fmt
 "nnoremap [N :tagnext
@@ -63,7 +57,6 @@ nnoremap [e :!%
 nnoremap [i :set ai
 nnoremap [n :set nu
 nnoremap [p :set paste
-nnoremap [sp o0{zqzqzq}--!!spell -b %[sq
 nnoremap [sq "zdd-"sd%"zpI/"zdd1G@z
 nnoremap [w :w
 nnoremap [{ o{+o}+
@@ -102,16 +95,17 @@ set incsearch
 set iskeyword=a-z,A-Z,48-57,_
 set laststatus=2
 set modeline
+set nu
 set ruler
 set shiftwidth=4
 set sts=4
 set si
-" softtabstop
-"set statusline=%<%f%{fugitive#statusline()}%=\ [%1*%M%*%n%R%H]\ %-19(%3l,%02c%03V%)%O'%02b'
 set showmatch
 set showcmd
+set signcolumn=yes
 set sr
 set tags=./tags,../../tags,~/tags,tags
+"set termguicolors
 set tildeop
 set timeoutlen=300
 set ttimeoutlen=300
@@ -125,9 +119,6 @@ set hlsearch
 if &term =~ '256c'
     "set t_ut=
     set t_Co=256
-    "colourscheme desert
-    "let g:seoul256_background=255
-    "colorscheme solarized8
 endif
 
 filetype plugin indent on
@@ -173,7 +164,7 @@ function! s:RunFocusGainedAutocmd()
 endfunction
 
 " Remove trailing space for most file types
-autocmd FileType c,cpp,java,php,json,yaml,python autocmd BufWritePre <buffer> %s/\s\+$//e
+autocmd FileType c,cpp,go,java,php,json,yaml,python autocmd BufWritePre <buffer> %s/\s\+$//e
 
 execute "set <f20>=\<Esc>[O"
 execute "set <f21>=\<Esc>[I"
@@ -191,3 +182,60 @@ vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
 source $HOME/.vim/syntastic.vimrc
 
 syntax on
+
+"------------------------------------------------------------------------------
+" terraform
+let g:terraform_align=1
+let g:terraform_fold_sections=1
+let g:terraform_fmt_on_save=1
+
+let g:go_fmt_command = "goimports"
+let g:go_auto_type_info = 1 
+
+"------------------------------------------------------------------------------
+"coc plugin stuff
+set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+" Having longer updatetime (default is 4000 ms = 4 s) leads to noticeable
+" delays and poor user experience.
+set updatetime=300
+
+" Don't pass messages to |ins-completion-menu|.
+set shortmess+=c
+" Use tab for trigger completion with characters ahead and navigate.
+" NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
+" other plugin before putting this into your config.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use <c-space> to trigger completion.
+if has('nvim')
+  inoremap <silent><expr> <c-space> coc#refresh()
+else
+  inoremap <silent><expr> <c-@> coc#refresh()
+endif
+
+" Make <CR> auto-select the first completion item and notify coc.nvim to
+" format on enter, <cr> could be remapped by other vim plugin
+inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+
+" Use `[g` and `]g` to navigate diagnostics
+" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+" GoTo code navigation.
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+colorscheme bubblegum-256-light

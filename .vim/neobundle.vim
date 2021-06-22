@@ -25,8 +25,12 @@ NeoBundle 'fatih/vim-go'
 NeoBundle 'flazz/vim-colorschemes'
 NeoBundle 'jeetsukumaran/vim-buffergator'
 NeoBundle 'jremmen/vim-ripgrep'
+NeoBundle 'juliosueiras/vim-terraform-completion'
 NeoBundle 'junegunn/fzf'
+NeoBundle 'hashivim/vim-terraform'
 NeoBundle 'majutsushi/tagbar'
+NeoBundle 'morhetz/gruvbox'
+NeoBundle 'neoclide/coc.nvim'
 NeoBundle 'pangloss/vim-javascript'
 NeoBundle 'scrooloose/nerdcommenter'
 NeoBundle 'scrooloose/nerdtree'
@@ -36,15 +40,14 @@ NeoBundle 'tmux-plugins/vim-tmux-focus-events'
 NeoBundle 'tpope/vim-commentary'
 NeoBundle 'tpope/vim-fugitive'
 NeoBundle 'tpope/vim-obsession'
-NeoBundle 'valloric/youcompleteme'
+" replaced by neoclide
+"NeoBundle 'valloric/youcompleteme'
 NeoBundle 'vim-airline/vim-airline'
 NeoBundle 'vim-airline/vim-airline-themes'
 NeoBundle 'w0rp/ale'
 NeoBundle 'whatyouhide/vim-tmux-syntax'
 NeoBundle 'yggdroot/indentline'
-"
-" json files we lose quotes which make edit a pain
-autocmd Filetype json :IndentLinesDisable
+
 let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
 
 call neobundle#end()
