@@ -117,8 +117,7 @@ set hlsearch
 
 " Terminal bits
 if &term =~ '256c'
-    "set t_ut=
-    set t_Co=256
+    "set t_Co=256
 endif
 
 filetype plugin indent on
@@ -179,9 +178,6 @@ onoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>
 vnoremap <silent> <f20> <Esc>:silent doautocmd FocusLost %<cr>gv
 vnoremap <silent> <f21> <Esc>:silent doautocmd FocusGained %<cr>gv
 
-source $HOME/.vim/syntastic.vimrc
-
-syntax on
 
 "------------------------------------------------------------------------------
 " terraform
@@ -224,8 +220,8 @@ endif
 
 " Make <CR> auto-select the first completion item and notify coc.nvim to
 " format on enter, <cr> could be remapped by other vim plugin
-inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
-                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+"inoremap <silent><expr> <cr> pumvisible() ? coc#_select_confirm()
+"                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
 " Use `[g` and `]g` to navigate diagnostics
 " Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
@@ -238,4 +234,10 @@ nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
-colorscheme bubblegum-256-light
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+"
+"set termguicolors
+let g:airline_theme='solarized'
+"colorscheme tutticolori
+syntax on
