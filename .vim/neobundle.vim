@@ -18,7 +18,8 @@ NeoBundle 'google/vim-maktaba'
 NeoBundle 'google/vim-codefmt'
 
 NeoBundle 'airblade/vim-gitgutter'
-NeoBundle 'chiel92/vim-autoformat'
+"NeoBundle 'dense-analysis/ale'
+"NeoBundle 'chiel92/vim-autoformat'
 NeoBundle 'christoomey/vim-tmux-navigator'
 NeoBundle 'ctrlpvim/ctrlp.vim'
 NeoBundle 'fatih/vim-go'
@@ -44,7 +45,6 @@ NeoBundle 'tpope/vim-obsession'
 "NeoBundle 'valloric/youcompleteme'
 NeoBundle 'vim-airline/vim-airline'
 NeoBundle 'vim-airline/vim-airline-themes'
-NeoBundle 'w0rp/ale'
 NeoBundle 'whatyouhide/vim-tmux-syntax'
 NeoBundle 'yggdroot/indentline'
 
@@ -52,3 +52,5 @@ let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
 
 call neobundle#end()
 NeoBundleCheck
+
+filetype plugin indent on
