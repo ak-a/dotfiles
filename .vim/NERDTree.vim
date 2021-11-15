@@ -23,5 +23,5 @@ call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
 call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
 call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
 
-map <leader>e :NERDTreeToggle<CR>
+map <F2> :NERDTreeToggle<CR>
 let g:NERDTreeNodeDelimiter = "\u00a0"
