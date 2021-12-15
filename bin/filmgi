@@ -43,7 +43,7 @@ iplayer_get() {
     fi
     if [[ ! ${args[*]} =~ --pvr- ]]; then
         hour=$(date +%_H)
-        [[ $hour -gt 6 && $hour -lt 23 ]] && args+=(--throttle 20)
+        [[ $hour -gt 6 && $hour -lt 23 ]] && args+=(--throttle 100)
     fi
     if [[ ! ${args[*]} =~ --pvr-add ]]; then
         args+=(--command "mkdir -p '$final_output'; mv -v -t '$final_output' '<filename>'")
@@ -79,6 +79,7 @@ iplayer_pvr() {
 
         iplayer_get $pdir
 
+        output=$(sed -n -e '/^output /s/^output //p' $pdir/options)
         echo "Checking $output should be empty..."
         find "$output" -type f -print
         echo "Cleaning empty directories..."
