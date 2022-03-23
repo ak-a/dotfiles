@@ -9,7 +9,7 @@ fi
 export PATH=$HOME/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/andrewking/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -80,10 +80,9 @@ HIST_STAMPS="yyyy-mm-dd"
 plugins=(
     colorize
     command-not-found
-    copydir
+    copypath
     copyfile
     dircycle
-    directory-history
     fzf
     gcloud
     golang
@@ -140,3 +139,9 @@ complete -o nospace -C /opt/homebrew/bin/terraform terraform
 # key bindings
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/andrew.king/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc'; fi
