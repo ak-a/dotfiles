@@ -1,0 +1,45 @@
+" settings
+set bg=light
+set autoindent
+set autowrite
+set background=light
+set backspace=1
+set backup
+set cmdheight=2
+set cpoptions=c$
+set expandtab
+set formatoptions=tcq2
+set hidden
+set history=5000
+set ignorecase
+set incsearch
+set iskeyword=a-z,A-Z,48-57,_
+set laststatus=2
+set modeline
+set nu
+set ruler
+set shiftwidth=4
+set sts=4
+set si
+set showmatch
+set showcmd
+set signcolumn=yes
+set sr
+set tags=./tags,../../tags,~/tags,tags
+"set termguicolors
+set tildeop
+set timeoutlen=300
+set ttimeoutlen=300
+set timeout
+set wildmode=list:longest
+set wildignore=*.o,*.bnd,*~
+set hlsearch
+set wildmenu
+set cpo-=<
+set wcm=<C-Z>
+set encoding=utf-8
+set fillchars+=vert:│
+
+" other settings (not set)
+filetype plugin indent on
+syntax on
