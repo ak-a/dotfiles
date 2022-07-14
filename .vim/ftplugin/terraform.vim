@@ -1,0 +1,1 @@
+autocmd BufWinEnter * silent! :%foldopen!
