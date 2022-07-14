@@ -26,13 +26,24 @@ call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
 
 map <F2> :NERDTreeToggle<CR>
 let g:NERDTreeNodeDelimiter = "\u00a0"
+"
 " terraform
 let g:terraform_align=1
 let g:terraform_fold_sections=1
 let g:terraform_fmt_on_save=1
 
-let g:go_fmt_command = "goimports"
+" vim-go settings
 let g:go_auto_type_info = 1 
+let g:go_fmt_command = "goimports"
+let g:go_highlight_fields = 1
+let g:go_highlight_function_calls = 1
+let g:go_highlight_functions = 1
+let g:go_highlight_types = 1
+let g:go_metalinter_autosave = 1
+autocmd FileType go nmap <leader>b  <Plug>(go-build)
+autocmd FileType go nmap <leader>r  <Plug>(go-run)
+
+
 " bash is our sh default
 let g:is_bash=1
 
@@ -56,16 +67,6 @@ let g:airline#extensions#branch#use_vcscommand = 1
 let g:airline_theme='molokai'
 
 let python_highlight_all=1
-
-"vim-go setup
-let g:go_highlight_types = 1
-let g:go_highlight_fields = 1
-let g:go_highlight_functions = 1
-let g:go_highlight_function_calls = 1
-let g:go_metalinter_autosave = 1
-let g:go_fmt_command = "goimports"
-autocmd FileType go nmap <leader>b  <Plug>(go-build)
-autocmd FileType go nmap <leader>r  <Plug>(go-run)
 
 "coc plugin stuff
 set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
@@ -111,3 +112,6 @@ nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+
+autocmd FileType python,c,cpp,go TagbarOpen
+
