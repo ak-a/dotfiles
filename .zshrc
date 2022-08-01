@@ -1,3 +1,4 @@
+source ~/.zsh_profile
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -147,4 +148,4 @@ bindkey "^[[1;3D" backward-word
 #if [ -f '/Users/andrew.king/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/path.zsh.inc'; fi
 
 # The next line enables shell command completion for gcloud.
-#if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc'; fi
