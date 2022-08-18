@@ -149,3 +149,5 @@ bindkey "^[[1;3D" backward-word
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc'; fi
+
+[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
