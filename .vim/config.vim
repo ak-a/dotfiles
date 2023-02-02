@@ -76,3 +76,6 @@ endif
 " Remove trailing space for most file types
 autocmd FileType c,cpp,go,java,php,json,yaml,python autocmd BufWritePre <buffer> %s/\s\+$//e
 
+if has('gui_running')
+    source ~/.vim/cursor.vim
+endif
