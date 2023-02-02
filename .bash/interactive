@@ -5,6 +5,12 @@
 #
 [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 
+kubectl completion bash &>/dev/null && {
+    source <(kubectl completion bash)
+    alias k=kubectl
+    complete -o default -F __start_kubectl k
+}
+
 # Environment setup
 # #################
 # I rule over all the other PATH bits
