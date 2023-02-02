@@ -26,7 +26,7 @@ set showcmd
 set signcolumn=yes
 set sr
 set tags=./tags,../../tags,~/tags,tags
-"set termguicolors
+set termguicolors
 set tildeop
 set timeoutlen=300
 set ttimeoutlen=300
