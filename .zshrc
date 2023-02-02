@@ -9,6 +9,12 @@ fi
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$PATH
 
+#homebrew completion
+if type brew &>/dev/null
+then
+    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+fi
+
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -144,10 +150,13 @@ complete -o nospace -C /opt/homebrew/bin/terraform terraform
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
 
-# The next line updates PATH for the Google Cloud SDK.
-#if [ -f '/Users/andrew.king/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
+# google gcloud sdk etc
+if [ -f '/Users/andrew.king/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/path.zsh.inc'; fi
 if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc'; fi
 
-[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
+# Loki/logcli
+#[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
+eval "$(logcli --completion-script-zsh)"
+export LOKI_ADDR=https://logs-prod-eu-west-0.grafana.net
+export LOKI_USERNAME=83697
+export LOKI_PASSWORD=$(gcloud secrets versions access latest --secret=platform_grafana-cloud-loki-viewer_account --project dojo-secrets-2021)
