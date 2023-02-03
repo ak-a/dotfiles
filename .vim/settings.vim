@@ -1,16 +1,20 @@
 " settings
-set bg=light
 set autoindent
 set autowrite
 set background=light
 set backspace=1
 set backup
+set bg=light
 set cmdheight=2
+set cpo-=<
 set cpoptions=c$
+set encoding=utf-8
 set expandtab
+set fillchars+=vert:│
 set formatoptions=tcq2
 set hidden
 set history=5000
+set hlsearch
 set ignorecase
 set incsearch
 set iskeyword=a-z,A-Z,48-57,_
@@ -19,26 +23,23 @@ set modeline
 set nu
 set ruler
 set shiftwidth=4
-set sts=4
-set si
-set showmatch
 set showcmd
+set showmatch
+set si
 set signcolumn=yes
 set sr
+set sts=4
 set tags=./tags,../../tags,~/tags,tags
 set termguicolors
 set tildeop
+set timeout
 set timeoutlen=300
 set ttimeoutlen=300
-set timeout
-set wildmode=list:longest
-set wildignore=*.o,*.bnd,*~
-set hlsearch
-set wildmenu
-set cpo-=<
+set undofile
 set wcm=<C-Z>
-set encoding=utf-8
-set fillchars+=vert:│
+set wildignore=*.o,*.bnd,*~
+set wildmenu
+set wildmode=list:longest
 
 " other settings (not set)
 filetype plugin indent on
