@@ -74,6 +74,8 @@ let g:airline_theme='molokai'
 let python_highlight_all=1
 
 "coc plugin stuff
+let g:coc_global_extensions = ['coc-docker', 'coc-go', 'coc-golines', 'coc-git', 'coc-json', 'coc-yaml']
+
 set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 " Having longer updatetime (default is 4000 ms = 4 s) leads to noticeable
 " delays and poor user experience.
