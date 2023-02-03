@@ -9,5 +9,5 @@ source ~/.vim/config.vim
 source ~/.vim/plugin-config.vim
 
 let g:airline_theme='solarized'
-colorscheme tutticolori
+colorscheme solarized
 syntax on
