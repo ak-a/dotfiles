@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# not good enough (yet)
-cd $(dirname $0)
-find . -type f | egrep -v -e "/(\.git|README.md|LICENSE)" | (cd ..; cut -c3- | xargs -I '{}' ln -sf ~/dotfiles/{} {})
-
-[[ -f .vim/bundles/YouCompleteMe/third_party/ycmd/ycm_core.so ]] || {
-    cd .vim/bundles/YouCompleteMe; python3 ./install.py
-}
