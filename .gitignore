@@ -1,5 +1,6 @@
 *~
 .*.swp
+.*.swo
 .tmux/*.log
 .tmux/plugins/tmux-*
 .vim/allbundles/YouCompleteMe/.circleci/

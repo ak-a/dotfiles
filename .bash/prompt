@@ -4,6 +4,8 @@
 
 : "${HOSTNAME:=$(hostname)}"
 
+[[ -r ~/src/kube-ps1/kube-ps1.sh ]] && source ~/src/kube-ps1/kube-ps1.sh
+
 set_inuse() {
     local inusec
     local inusep
@@ -32,7 +34,9 @@ print_prompt() {
     printf '%s%s: %s' ${_defc} ${_uq_fg_red3} "${_PROMPT_EXIT}"
     printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
     printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
-    printf '%s %s %s ; ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
+    printf '%s %s %s ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
+    [[ $(type -t kube_ps1) == function ]] && printf '%s%s%s ' ${_defc} ${_uq_fg_purple} $(kube_ps1)
+    printf ';'
     printf '%s%s\n' ${CLEAR_EOL} ${NO_COLOUR_UQ}
 }
 

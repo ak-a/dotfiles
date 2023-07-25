@@ -108,8 +108,6 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-source ~/google-cloud-sdk/completion.zsh.inc
-
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
@@ -156,7 +154,4 @@ if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Use
 
 # Loki/logcli
 #[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
-eval "$(logcli --completion-script-zsh)"
-export LOKI_ADDR=https://logs-prod-eu-west-0.grafana.net
-export LOKI_USERNAME=83697
-export LOKI_PASSWORD=$(gcloud secrets versions access latest --secret=platform_grafana-cloud-loki-viewer_account --project dojo-secrets-2021)
+#eval "$(logcli --completion-script-zsh)"

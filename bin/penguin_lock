@@ -1,0 +1,74 @@
+#!/bin/bash
+
+: ${BT_MAC:=D0:04:B0:1C:E7:76}
+
+max_failed_duration=25
+sleep_duration=5
+min_success_duration=16
+
+last_success=0
+
+SS_QUERY="gnome-screensaver-command -q"
+
+i_locked=true
+i_unlocked=true
+phone_near=true
+last_seen=${EPOCHSECONDS}
+last_notseen=${EPOCHSECONDS}
+last_command_epoch=${EPOCHSECONDS}
+
+lock_screen() {
+    last_lock=${EPOCHSECONDS}
+    gnome-screensaver-command -l
+    i_locked=true
+}
+
+unlock_screen() {
+    last_unlock=${EPOCHSECONDS}
+    gnome-screensaver-command -d
+    xdotool sleep 1.0 mousemove_relative --sync 1 1 sleep 0.1 mousemove_relative --sync -- -1 -1
+    i_unlocked=true
+}
+
+device_near=false
+
+while true;
+do
+    command_duration=$(( ${EPOCHSECONDS} - ${last_command_epoch} ))
+    [[ $command_duration -lt $sleep_duration ]] &&
+        sleep $(( ${sleep_duration} - ${command_duration} ))
+
+    last_command_epoch=${EPOCHSECONDS}
+    if [[ -n $(hcitool name ${BT_MAC}) ]] ; then
+        last_seen=${EPOCHSECONDS}
+    else
+        last_notseen=${EPOCHSECONDS}
+    fi
+
+    if [[ \
+            $last_seen -gt $last_notseen && \
+            $(( $last_seen - $last_notseen )) -gt $min_success_duration && \
+            $phone_near == false \
+        ]]; then
+        phone_near=true
+    elif 
+        [[ \
+            $last_notseen -gt $last_seen &&  \
+            $(( $last_notseen - $last_seen )) -gt $max_failed_duration && \
+            $phone_near == true \
+        ]]; then
+        phone_near=false
+    else
+        continue
+    fi
+
+    ss_state=locked
+    [[ $(${SS_QUERY}) =~ .*inactive ]] && ss_state=unlocked
+
+    if [[ $ss_state == locked && $phone_near == true && $i_locked == true ]]; then
+        unlock_screen
+    elif [[ $ss_state == unlocked && $phone_near == false ]]; then
+        lock_screen
+    fi
+
+done

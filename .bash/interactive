@@ -11,6 +11,10 @@ kubectl completion bash &>/dev/null && {
     complete -o default -F __start_kubectl k
 }
 
+helm completion bash &>/dev/null && {
+    source <(helm completion bash)
+}
+
 # Environment setup
 # #################
 # I rule over all the other PATH bits
