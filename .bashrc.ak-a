@@ -127,7 +127,7 @@ function trapadd() { #command #SIGSPEC
 
 declare -xf _bashrc_cleanup _bashrc_each trapadd
 
-if [[ -d /run ]]; then
+if [[ -d /run/user ]]; then
     PIDRUNDIR=/run/user
 elif [[ -d /dev/shm ]]; then
     PIDRUNDIR=/dev/shm
