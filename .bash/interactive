@@ -5,14 +5,20 @@
 #
 [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 
-kubectl completion bash &>/dev/null && {
-    source <(kubectl completion bash)
+completion_commands=( kubectl helm kustomize gcloud )
+
+for c in ${completion_commands[*]}
+do
+    _c_cache=~/.bash/completion-$c
+    [[ -s $_c_cache ]] || {
+        $c completion bash 2>/dev/null > $_c_cache
+    }
+    source $_c_cache
+done
+
+kubectl &>/dev/null && {
     alias k=kubectl
     complete -o default -F __start_kubectl k
-}
-
-helm completion bash &>/dev/null && {
-    source <(helm completion bash)
 }
 
 # Environment setup
@@ -37,7 +43,6 @@ alias mux=tmuxinator
 
 function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
 
-alias egit='git -c http.proxy=fwdproxy:8080 -c https.proxy=fwdproxy:8080'
 export SHELLCHECK_OPTS="-e SC2086 -e SC2046"
 
 gofind() { # [dir] [test]
