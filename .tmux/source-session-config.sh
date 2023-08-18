@@ -4,7 +4,8 @@
 
 session="${1:-default}"
 
-config_dir=$(cd $(dirname $0); pwd)
+config_dir=${$0%/*}
+[[ ${config_dir} == $0 ]] && config_dir=$(pwd)
 
 session_config=${config_dir}/default.conf
 [[ -r ${config_dir}/${session}.conf ]]  && session_config=${config_dir}/${session}.conf
