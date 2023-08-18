@@ -17,10 +17,16 @@ last_seen=${EPOCHSECONDS}
 last_notseen=${EPOCHSECONDS}
 last_command_epoch=${EPOCHSECONDS}
 
+print_lock_status() {
+    printf "\n"
+    printf "%6s %s\n" $1 $(date -d @$2 --iso-8601=seconds)
+}
+
 lock_screen() {
     last_lock=${EPOCHSECONDS}
     gnome-screensaver-command -l
     i_locked=true
+    print_lock_status lock $last_lock
 }
 
 unlock_screen() {
@@ -28,6 +34,7 @@ unlock_screen() {
     gnome-screensaver-command -d
     xdotool sleep 1.0 mousemove_relative --sync 1 1 sleep 0.1 mousemove_relative --sync -- -1 -1
     i_unlocked=true
+    print_lock_status unlock $last_unlock
 }
 
 device_near=false
@@ -44,6 +51,11 @@ do
     else
         last_notseen=${EPOCHSECONDS}
     fi
+
+    printf "%4d %4d %s  \r" \
+        $(( ${EPOCHSECONDS} - ${last_seen} )) \
+        $(( ${EPOCHSECONDS} - ${last_notseen} )) \
+        $phone_near
 
     if [[ \
             $last_seen -gt $last_notseen && \
