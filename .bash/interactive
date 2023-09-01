@@ -21,6 +21,10 @@ kubectl &>/dev/null && {
     complete -o default -F __start_kubectl k
 }
 
+
+[[ -n $HOMEBREW_PREFIX && -r $HOMEBREW_PREFIX/etc/bash_completion ]] && \
+    source $HOMEBREW_PREFIX/etc/bash_completion
+
 # Environment setup
 # #################
 # I rule over all the other PATH bits
