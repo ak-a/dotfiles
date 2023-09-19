@@ -94,6 +94,7 @@ plugins=(
     gcloud
     golang
     git
+    gitfast
     history-substring-search
     jira
     kubectl
