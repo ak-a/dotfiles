@@ -5,13 +5,14 @@
 #
 [[ -f /etc/bash_completion ]] && . /etc/bash_completion
 
-completion_commands=( kubectl helm kustomize gcloud )
+_completion_commands=( kubectl helm kustomize gcloud gh )
 
-for c in ${completion_commands[*]}
+
+for c in ${_completion_commands[*]}
 do
     _c_cache=~/.bash/completion-$c
     [[ -s $_c_cache ]] || {
-        $c completion bash 2>/dev/null > $_c_cache
+        $c completion $([[ $c == gh ]] && echo -s) bash 2>/dev/null > $_c_cache
     }
     source $_c_cache
 done
