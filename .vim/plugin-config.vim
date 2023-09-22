@@ -7,7 +7,7 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isT
 " NERDTree settings
 let g:NERDTreeShowHidden = 1
 let g:NERDTreeMinimalUI = 1
-let g:NERDTreeIgnore = ['^\.DS_Store$', '^tags$', '\.git$[[dir]]', '\.idea$[[dir]]', '\.sass-cache$', '\.*\~$', '\..*\.sw[a-z]$', '\..*\.un\~$', '.*\~$']
+let g:NERDTreeIgnore = ['^\.DS_Store$', '^tags$', '^\.git$[[dir]]', '\.idea$[[dir]]', '\.sass-cache$', '\.*\~$', '\..*\.sw[a-z]$', '\..*\.un\~$', '.*\~$']
 let g:NERDTreeNodeDelimiter = "\u00a0"
 
 " NERDTree File highlighting
