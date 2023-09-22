@@ -62,6 +62,10 @@ gogrep() {
     gofind $2 $3 | xargs -0 grep $4 -e "$1"
 }
 
+ygrep() { # grep in yaml
+    grep -r ${2:.} --include "*.yaml" $3 -e "$1" 
+}
+
 function urldecode() {
     : "${*//+/ }"
     echo -e "${_//%/\\x}"
