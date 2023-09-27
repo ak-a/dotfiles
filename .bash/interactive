@@ -3,18 +3,20 @@
 # this is only sourced if we are interactive, but will be sourced before other stuff
 # good place to put setup and environment stuff
 #
-[[ -f /etc/bash_completion ]] && . /etc/bash_completion
+[[ -f /etc/bash_completion && $_bash_completion_done != $$ ]] && . /etc/bash_completion
+_bash_completion_done=$$
 
 _completion_commands=( kubectl helm kustomize gcloud gh )
 
-
 for c in ${_completion_commands[*]}
 do
+    complete | egrep -q -e "-F \w+ $c\$" && continue
     _c_cache=~/.bash/completion-$c
     [[ -s $_c_cache ]] || {
         $c completion $([[ $c == gh ]] && echo -s) bash 2>/dev/null > $_c_cache
     }
     source $_c_cache
+    _completion_commands_done[$c]=1
 done
 
 kubectl &>/dev/null && {
@@ -47,6 +49,14 @@ alias mux=tmuxinator
 # #########
 
 function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
+function nwtb() {
+    cd $(git worktree list | head -1 | cut -f1) || return 1
+    git worktree add -b $1 $1 && {
+        cd $1
+        pre-commit install
+        git push --set-upstream origin $1
+    }
+}
 
 export SHELLCHECK_OPTS="-e SC2086 -e SC2046"
 
