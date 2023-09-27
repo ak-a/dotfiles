@@ -65,6 +65,8 @@ let g:syntastic_python_checkers = ['python3', 'pyflakes3']
 let g:syntastic_shell_checkers = ['shellcheck']
 " yaml
 let g:syntastic_yaml_checkers = [ "yamllint" ]
+" json
+let g:syntastic_yaml_checkers = [ "jsonlint" ]
 
 "VC stuff....
 let g:vc_browse_cache_all = 1
