@@ -50,7 +50,11 @@ alias mux=tmuxinator
 
 function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
 function nwtb() {
-    cd $(git worktree list | head -1 | cut -f1) || return 1
+    cd $(git worktree list | head -1 | cut -d' ' -f1) || return 1
+    git fetch
+    cd master
+    git pull
+    cd ..
     git worktree add -b $1 $1 && {
         cd $1
         pre-commit install
