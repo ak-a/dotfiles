@@ -1,0 +1,13 @@
+---
+rules:
+  braces:
+    max-spaces-inside: 1
+    level: error
+  brackets:
+    max-spaces-inside: 1
+    level: error
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  line-length: disable
+  truthy: disable

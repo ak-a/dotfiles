@@ -12,3 +12,4 @@
 .vim/biggrep.vim
 .vim/bundle/vim-tmux
 .bash/completion-*
+Session.vim

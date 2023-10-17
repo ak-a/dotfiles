@@ -116,3 +116,5 @@ nmap <silent> gr <Plug>(coc-references)
 
 autocmd FileType python,c,cpp,go TagbarOpen
 
+"Obsession
+set statusline+=" %{ObsessionStatus()"}
