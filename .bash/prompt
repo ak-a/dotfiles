@@ -4,7 +4,11 @@
 
 : "${HOSTNAME:=$(hostname)}"
 
-[[ -r ~/src/kube-ps1/kube-ps1.sh ]] && source ~/src/kube-ps1/kube-ps1.sh
+# use tmux kube config
+#[[ -r /home/anking/src/kube-ps1/kube-ps1.sh ]] && {
+    #source /home/anking/src/kube-ps1/kube-ps1.sh
+    #kubeon
+#}
 
 set_inuse() {
     local inusec
