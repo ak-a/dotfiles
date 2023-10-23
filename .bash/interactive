@@ -95,3 +95,14 @@ urlencode() {
         esac
     done
 }
+
+# add any clean-up etc here
+bash_trap_exit() {
+    [[ $(type -t shell_history_write_all) == function ]] &&
+        shell_history_write_all
+    rm -f /tmp/bashtrace.$$.txt /tmp/bashtrace.$$.txt
+}
+
+trap -- bash_trap_exit EXIT
+
+
