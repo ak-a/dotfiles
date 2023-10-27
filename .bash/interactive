@@ -30,7 +30,9 @@ type -t kubectl &>/dev/null && {
     alias k=kubectl
     complete -o default -F __start_kubectl k
 }
-
+type -t kubxctx &>/dev/null && {
+    alias kx=kubectx
+}
 
 [[ -n $HOMEBREW_PREFIX && -r $HOMEBREW_PREFIX/etc/bash_completion ]] && \
     source $HOMEBREW_PREFIX/etc/bash_completion
