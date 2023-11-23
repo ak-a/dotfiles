@@ -3,16 +3,23 @@
 # this is only sourced if we are interactive, but will be sourced before other stuff
 # good place to put setup and environment stuff
 #
-[[ -f /etc/bash_completion && $_bash_completion_done != $$ ]] && . /etc/bash_completion
+[[ -f /etc/bash_completion && $_bash_completion_done != $$ ]] && {
+    source /etc/bash_completion
+    for c in /home/linuxbrew/.linuxbrew/etc/bash_completion.d/*
+    do
+        [[ -r $c ]] && source $c
+    done
+}
 _bash_completion_done=$$
 
 declare -A _completion_commands=( 
-    argocd "completion bash"
-    kubectl "completion bash"
-    helm "completion bash"
-    kustomize "completion bash"
-    gcloud "completion bash"
-    gh "completion -s bash"
+    argocd     "completion  bash"  
+    gcloud     "completion  bash"  
+    gh         "completion  -s     bash"
+    helm       "completion  bash"  
+    k9s        "completion  bash"  
+    kubectl    "completion  bash"  
+    kustomize  "completion  bash"  
 )
 
 for c in ${!_completion_commands[*]}
@@ -30,9 +37,13 @@ type -t kubectl &>/dev/null && {
     alias k=kubectl
     complete -o default -F __start_kubectl k
 }
-type -t kubxctx &>/dev/null && {
-    alias kx=kubectx
+type -t kubectx &>/dev/null && alias kx=kubectx
+type -t terraform &>/dev/null && {
+    complete -C $(type -p terraform) terraform
+    alias tf=terraform
+    complete -C $(type -p terraform) tf
 }
+type -t terragrunt &>/dev/null && alias tg=terragrunt
 
 [[ -n $HOMEBREW_PREFIX && -r $HOMEBREW_PREFIX/etc/bash_completion ]] && \
     source $HOMEBREW_PREFIX/etc/bash_completion
