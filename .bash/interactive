@@ -17,7 +17,7 @@ declare -A _completion_commands=(
     gcloud     "completion  bash"  
     gh         "completion  -s     bash"
     helm       "completion  bash"  
-    k9s        "completion  bash"  
+    k9sectl    "completion  bash"  
     kubectl    "completion  bash"  
     kustomize  "completion  bash"  
 )
