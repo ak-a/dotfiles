@@ -156,3 +156,5 @@ if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Use
 # Loki/logcli
 #[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
 #eval "$(logcli --completion-script-zsh)"
+
+complete -o nospace -C /home/linuxbrew/.linuxbrew/Cellar/terraform/1.5.7/bin/terraform terraform
