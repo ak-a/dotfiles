@@ -239,3 +239,39 @@ if [ -f $HOME/.cdpreload ]; then
 	((i=i+1))
     done < $HOME/.cdpreload
 fi
+
+cdwt() {
+    local wt wts
+
+    typeset -a wts=($(git worktree list --porcelain \
+        | awk ' NR>1 && /worktree/ { print $2 } '))
+    for wt in ${wts[*]}
+    do
+        [[ $PWD == $wt/** ]] && {
+            [[ ! " ${wts[*]} " =~ " $1 " ]] || {
+                echo "$0: $1 not a git worktree" >&2
+                return 1
+            }
+            # remove last directory from current worktree
+            # use arg as new worktree directory
+            # use subdirectory within worktree so get a full path
+            cd ${wt%/*}/${1}/${PWD#$wt/}
+            return 0
+    }
+    done
+    echo "$0: not in git worktree" >&2
+    return 2
+}
+
+_cdwt_complete() {
+    local curr_arg wts
+
+    curr_arg=${COMP_WORDS[$COMP_CWORD]}
+    wts=$(git worktree list --porcelain \
+        | awk -F/ ' NR>1 && /worktree/ { print $NF } ')
+
+    COMPREPLY=( $(compgen -W "${wts}" -- $curr_arg ) );
+}
+
+complete -F _cdwt_complete cdwt
+    
