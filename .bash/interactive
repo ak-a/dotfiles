@@ -64,6 +64,7 @@ export EDITOR=vim
 alias grep='grep --color'                     # show differences in colour
 #alias ls='ls -h --color=tty'                 # classify files in colour
 alias mux=tmuxinator
+type -t jless &>/dev/null && alias yless="jless --yaml"
 
 # Functions
 # #########
