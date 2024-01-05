@@ -1,16 +1,16 @@
-" NERDTree config
+" ### NERDTree config
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
-" NERDTree settings
+" settings
 let g:NERDTreeShowHidden = 1
 let g:NERDTreeMinimalUI = 1
 let g:NERDTreeIgnore = ['^\.DS_Store$', '^tags$', '^\.git$[[dir]]', '\.idea$[[dir]]', '\.sass-cache$', '\.*\~$', '\..*\.sw[a-z]$', '\..*\.un\~$', '.*\~$']
 let g:NERDTreeNodeDelimiter = "\u00a0"
 
-" NERDTree File highlighting
+" File highlighting
 function! NERDTreeHighlightFile(extension, fg, bg, guifg, guibg)
  exec 'autocmd filetype nerdtree highlight ' . a:extension .' ctermbg='. a:bg .' ctermfg='. a:fg .' guibg='. a:guibg .' guifg='. a:guifg
  exec 'autocmd filetype nerdtree syn match ' . a:extension .' #^\s\+.*'. a:extension .'$#'
@@ -29,8 +29,9 @@ call NERDTreeHighlightFile('css', 'cyan', 'none', 'cyan', '#151515')
 call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
 call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
 call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
+nmap <silent> <leader>E :NERDTreeToggleVCS<CR>
 
-map <F2> :NERDTreeToggle<CR>
+nmap <silent> <F2> :NERDTreeToggleVCS<CR>
 "
 " terraform
 let g:terraform_align=1
@@ -52,6 +53,8 @@ autocmd FileType go nmap <leader>r  <Plug>(go-run)
 " bash is our sh default
 let g:is_bash=1
 
+" syntastic deprecate for ale
+if 0
 " syntastic settings
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
@@ -67,6 +70,12 @@ let g:syntastic_shell_checkers = ['shellcheck']
 let g:syntastic_yaml_checkers = [ "yamllint" ]
 " json
 let g:syntastic_yaml_checkers = [ "jsonlint" ]
+endif
+
+" Ale settings
+let g:ale_fixers = {}
+let g:ale_fixers.python = ['black']
+let g:ale_python_flake8_options = '--max-line-length=118'
 
 "VC stuff....
 let g:vc_browse_cache_all = 1
@@ -118,3 +127,7 @@ autocmd FileType python,c,cpp,go TagbarOpen
 
 "Obsession
 set statusline+=" %{ObsessionStatus()"}
+
+" indentline settings
+let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
+
