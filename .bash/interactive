@@ -70,17 +70,41 @@ type -t jless &>/dev/null && alias yless="jless --yaml"
 # #########
 
 function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
+readarray -t _git_emojis < ~/.git-emoji
 function nwtb() {
-    cd $(git worktree list | head -1 | cut -d' ' -f1) || return 1
-    git fetch
-    cd master
-    git pull
-    cd ..
-    git worktree add -b $1 $1 && {
-        cd $1
-        pre-commit install
-        git push --set-upstream origin $1
-    }
+
+    local jira_ticket git_emoji
+    [[ $1 =~ ^([A-Z]{2,}-[0-9]+)(-.*)? ]] || { echo "nwtb: '$1' doesn't start with a JIRA ticket number XX*-dd*" ; return 2; }
+    jira_ticket=${BASH_REMATCH[1]}
+
+    cd $(git worktree list 2>/dev/null | head -1 | cut -d' ' -f1) || return 1
+    git fetch \
+        && cd master \
+        && git pull \
+        && cd .. \
+    && git worktree add -b $1 $1 || return $?
+    cd $1 || return $?
+
+    # now we setup the wt branch
+    pre-commit install
+    git push --set-upstream origin $1
+
+    # choose what this is commit type
+    if type -t gum &>/dev/null; then
+        # use gum as preferred option
+        git_emoji=$(gum choose --height 20 "${_git_emojis[@]}" | cut -d' ' -f1)
+    else
+        select git_emoji in "${_git_emojis[@]}"
+        do
+            break;
+        done
+    fi
+    cat > .gitmessage <<GITMESSAGE
+$git_emoji $jira_ticket ####SUBJECT WHAT####
+
+BODY#####WHY
+GITMESSAGE
+    git config commit.template .gitmessage
 }
 
 export SHELLCHECK_OPTS="-e SC2086 -e SC2046"
