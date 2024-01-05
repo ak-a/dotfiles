@@ -18,10 +18,10 @@ NeoBundle 'google/vim-maktaba'
 NeoBundle 'google/vim-codefmt'
 
 NeoBundle 'airblade/vim-gitgutter'
-"NeoBundle 'dense-analysis/ale'
 "NeoBundle 'chiel92/vim-autoformat'
 NeoBundle 'christoomey/vim-tmux-navigator'
 NeoBundle 'ctrlpvim/ctrlp.vim'
+NeoBundle 'dense-analysis/ale'
 NeoBundle 'fatih/vim-go'
 NeoBundle 'flazz/vim-colorschemes'
 NeoBundle 'jeetsukumaran/vim-buffergator'
@@ -37,7 +37,7 @@ NeoBundle 'neoclide/coc.nvim', 'release'
 NeoBundle 'pangloss/vim-javascript'
 NeoBundle 'scrooloose/nerdcommenter'
 NeoBundle 'scrooloose/nerdtree'
-NeoBundle 'scrooloose/syntastic'
+"NeoBundle 'scrooloose/syntastic' deprecated for ale
 "NeoBundle 'SirVer/ultisnips'
 NeoBundle 'sodapopcan/vim-twiggy'
 NeoBundle 'tmux-plugins/vim-tmux'
@@ -54,8 +54,6 @@ NeoBundle 'vim-airline/vim-airline'
 NeoBundle 'vim-airline/vim-airline-themes'
 NeoBundle 'whatyouhide/vim-tmux-syntax'
 NeoBundle 'yggdroot/indentline'
-
-let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
 
 call neobundle#end()
 NeoBundleCheck
