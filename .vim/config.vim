@@ -1,5 +1,5 @@
 " for a bunch of mappings
-let mapleader="\\"
+let leader='\\'
 
 " Terminal bits
 if &term =~ '256c'
