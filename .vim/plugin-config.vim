@@ -1,3 +1,28 @@
+" ### Fugitive
+function! ToggleGstatus() abort
+  for l:winnr in range(1, winnr('$'))
+    if !empty(getwinvar(l:winnr, 'fugitive_status'))
+      exe l:winnr 'close'
+      return
+    endif
+  endfor
+  keepalt Git
+endfunction
+nnoremap <silent> <F4> :call ToggleGstatus()<CR>
+function! s:close_gstatus()
+    for l:winnr in range(1, winnr('$'))
+	if !empty(getwinvar(l:winnr, 'fugitive_status'))
+	    execute l:winnr.'close'
+	endif
+    endfor
+endfunction
+command! GstatusClose call s:close_gstatus()
+
+augroup my_fugitive_commit_hook
+      autocmd!
+        autocmd BufDelete COMMIT_EDITMSG call s:close_gstatus()
+augroup END
+
 " ### NERDTree config
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
@@ -29,10 +54,9 @@ call NERDTreeHighlightFile('css', 'cyan', 'none', 'cyan', '#151515')
 call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
 call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
 call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
-nmap <silent> <leader>E :NERDTreeToggleVCS<CR>
+nnoremap <silent> <leader>E :NERDTreeToggleVCS<CR>
+nnoremap <silent> <F2> :NERDTreeToggleVCS<CR>
 
-nmap <silent> <F2> :NERDTreeToggleVCS<CR>
-"
 " terraform
 let g:terraform_align=1
 let g:terraform_fold_sections=1
