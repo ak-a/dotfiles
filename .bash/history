@@ -13,63 +13,77 @@ HISTFILESIZE=10
 HISTTIMEFORMAT="[%Y-%m-%dT%H:%M:%S] "
 
 export HISTDIR=$HOME/.histdir
-[ -d $HISTDIR ] || mkdir -p $HISTDIR
+export HISTARCHIVE=$HOME/.histarchive
+[[ -d $HISTDIR ]] || mkdir -p $HISTDIR
+[[ -d $HISTARCHIVE ]] || mkdir -p $HISTARCHIVE
 
 HISTFILESIZE=500000
 HISTFILE=$HISTDIR/${HOSTNAME:-$(hostname -s)}.$(tty | cut -d/ -f4).$$
 HISTFILEMERGE=$HOME/.bash_history_merged
 
-_slurp_shell_histories() {
+_slurp_other_shell_histories() {
     local _histfile
     local _histfilepath
     while read -r _histfile
     do
         _histfilepath=$HISTDIR/$_histfile
-        # if the file is newer than the merge file then we have done some shell commands
-        # since the last merge, since this is called again when merge the history at
-        # logout, we need to check we aren't re-reading ourselves.
-        if [[ $_histfilepath -nt $HISTFILEMERGE && "$_histfilepath" != "$HISTFILE" ]]; then
-            history -r $_histfilepath
-        else
-            # our file should have been merged so we can delete, if the shell
-            # is still running then the prompt_history will write a new file, so we are good
-            rm -f $_histfilepath
-        fi
+        # read other shell histories
+        [[ ${_histfilepath} != ${HISTFILE} ]] &&
+            history -r ${_histfilepath}
     done < <(ls -rt1 $HISTDIR)
     _HISTORYFIRSTRUN=true
 }
 
-# should be called at shell logout
-shell_history_write_all() {
-    local lockfile
-    local tmpfile
+get_lock_on_file() {
+    local lockfile tmpfile timeout
+
+    # try and get a lock 'mv' is atomic (at least on local fs)
+    lockfile=${1}
+    tmpfile=$(mktemp -p ${1%/*})        # make tempfile in same directory
+    [[ $? -ne 0 ]] && return 1          # if this fails, then we can't do much
+
+    timeout=0                           # default timeout is 10
+    until (( timeout++ == ${2:-10} )) \
+        || mv -n $tmpfile $lockfile \
+        && [[ ! -f $tmpfile ]]
+    do
+        echo "waiting for lockfile '$lockfile'" >&2
+        sleep $timeout                  # this is back-off second by second
+    done
+
+    return 0
+}
+
+# should be called at shell exit
+history_merge_at_shell_exit() {
+    local lockfile=$HISTDIR/_merge.lock
 
     # if we didn't set a MERGE filename, skip
     [[ -z $HISTFILEMERGE ]] && return
 
-    # try and get a lock 'mv' is atomic (at least on local fs)
-    lockfile=$HISTDIR/_merge.lock
-    tmpfile=$(mktemp -p $HISTDIR)
-    [[ $? -ne 0 ]] && return            # if this fails, then we can't do much
-    mv $tmpfile $lockfile || { rm -f $tmpfile; return; }
+    get_lock_on_file $lockfile || return
 
-    _slurp_shell_histories        # will read any newer stuff for merging
-
-    # now we write the lovely merge history into the single file to make things quicker
-    # for the next shell
-    history -w $HISTFILEMERGE
-    rm -f $lockfile
+    history -a
+    history -c
+    #history | wc -l
+    history -r $HISTFILEMERGE
+    #history | wc -l
+    history -r $HISTFILE
+    #history | wc -l
+    history -w $lockfile
+    cp --backup=numbered $HISTFILEMERGE $HISTARCHIVE/merged
+    mv $lockfile $HISTFILEMERGE
+    mv $HISTFILE $HISTARCHIVE
 }
 
 
 # assumes a 'history -a' in prompt_command and
 # needs a history -w $HISTFILEMERGE in .bash_logout
 prompt_history() {
-    history -a
     if [[ -z ${_HISTORYFIRSTRUN} ]]; then
         [[ -r $HISTFILEMERGE ]] && history -r $HISTFILEMERGE
-        _slurp_shell_histories
-    else
-        history -n
+        _slurp_other_shell_histories
     fi
+    history -a
+    history -n
 }
