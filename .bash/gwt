@@ -214,7 +214,17 @@ function _gwtsub_nb() {
 }
 
 function _gwtsub_clone() {
-    :
+    local default_branch
+    local dest=${1##*/}
+
+    git clone --bare $1 ${dest} || return $?
+    command cd ${dest}
+
+    default_branch=$(git remote show https://git.drwholdings.com/xd/xd-config | awk '/HEAD/ { print $NF}')
+    [[ -z $default_branch ]] && { echo "gwt: can't find default branch" &>2; return 1; }
+
+    git worktree add $default_branch &&
+        cd $default_branch
 }
 
 _gwt_run_command_in_another_tree() { # command remote-worktree args...
@@ -319,16 +329,24 @@ _gwt_complete() {
 # need all the _gwtsub_* functions defining before we get here
 declare -a _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p'))
 declare -a _gwt_remote_commands=(find grep)
+declare -a _gwt_no_wt_commands=(clone)
 _gwt_commands+=( "${_gwt_remote_commands[@]}" )
 _gwt_refresh_info 2>/dev/null
 
 gwt() {
     local gwt_command="_gwtsub_${1}"
-    local worktree regex
+    local regex="\<${1}\>"
+    local worktree
 
     [[ $# -eq 0 ]] && {
         echo "gwt: ERROR - no command specified" >&2
         return 128
+    }
+
+    [[ ${_gwt_no_wt_commands[@]} =~ ${regex} ]] && {
+        shift
+        ${gwt_command} "$@"
+        return $?
     }
 
     _gwt_refresh_info || return $?
@@ -338,7 +356,6 @@ gwt() {
         return 1
     }
 
-    regex="\<${1}\>"
     [[ ${_gwt_remote_commands[@]} =~ ${regex} ]] && {
         command=$1
         shift
