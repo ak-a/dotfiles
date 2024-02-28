@@ -24,6 +24,10 @@ HISTFILEMERGE=$HOME/.bash_history_merged
 _slurp_other_shell_histories() {
     local _histfile
     local _histfilepath
+
+    _HISTORYFIRSTRUN=true
+    history -c
+    [[ -r $HISTFILEMERGE ]] && history -r $HISTFILEMERGE
     while read -r _histfile
     do
         _histfilepath=$HISTDIR/$_histfile
@@ -31,7 +35,6 @@ _slurp_other_shell_histories() {
         [[ ${_histfilepath} != ${HISTFILE} ]] &&
             history -r ${_histfilepath}
     done < <(ls -rt1 $HISTDIR)
-    _HISTORYFIRSTRUN=true
 }
 
 get_lock_on_file() {
@@ -57,33 +60,46 @@ get_lock_on_file() {
 # should be called at shell exit
 history_merge_at_shell_exit() {
     local lockfile=$HISTDIR/_merge.lock
+    local ourhistfile=$HISTFILE
 
     # if we didn't set a MERGE filename, skip
     [[ -z $HISTFILEMERGE ]] && return
 
     get_lock_on_file $lockfile || return
 
-    history -a
-    history -c
+    history -a                      # add any missing history to our HISTFILE
+    unset HISTFILE                  # now munge history without clobbering our HISTFILE
+    history -c                      # clear HISTORY
     #history | wc -l
-    history -r $HISTFILEMERGE
+    history -r $HISTFILEMERGE       # read old merged file
     #history | wc -l
-    history -r $HISTFILE
+    history -r $ourhistfile        
     #history | wc -l
-    history -w $lockfile
-    cp --backup=numbered $HISTFILEMERGE $HISTARCHIVE/merged
-    mv $lockfile $HISTFILEMERGE
-    mv $HISTFILE $HISTARCHIVE
+    history -w $lockfile            # write the new merge
+    # keep a backup
+    mv -i $ourhistfile $HISTARCHIVE    # keep history file just in case
+
+    # now archive old merge and keep a few around
+    logrotate --log $HISTARCHIVE/logrotate.log --state $HISTARCHIVE/logrotate.state $HISTARCHIVE/logrotate.conf
+    mv -i $HISTFILEMERGE $HISTARCHIVE/merged
+    mv $lockfile $HISTFILEMERGE     # now put merged history in place for next shell
 }
 
 
 # assumes a 'history -a' in prompt_command and
 # needs a history -w $HISTFILEMERGE in .bash_logout
 prompt_history() {
-    if [[ -z ${_HISTORYFIRSTRUN} ]]; then
-        [[ -r $HISTFILEMERGE ]] && history -r $HISTFILEMERGE
-        _slurp_other_shell_histories
-    fi
+    [[ -z ${_HISTORYFIRSTRUN} ]] && _slurp_other_shell_histories
     history -a
     history -n
 }
+declare -xf prompt_history history_merge_at_shell_exit
+
+cat <<CONF > $HISTARCHIVE/logrotate.conf
+$HISTARCHIVE/merged {
+    rotate 10
+    nocompress
+    nocreate
+    missingok
+}
+CONF
