@@ -31,38 +31,29 @@ shopt -s cdspell checkwinsize cmdhist
 # Work around bash bugs...
 
 
-CDHIST[0]="$PWD"
+declare -a CDHIST=([0]="$PWD")
 
 function _cdh
 {
     typeset -i cdlen i
     typeset t
+    local -a matches
+    shopt -s extglob
 
-    if [ $# -eq 0 ]
+    [[ $# -eq 0 ]] && set -- $HOME
+
+    if [[ -n $CDHISTFILE && -r $CDHISTFILE ]] # if directory history exists
     then
-	set -- $HOME
+        mapfile -t CDHIST < $CDHISTFILE
     fi
 
-    if [ "$CDHISTFILE" -a -r "$CDHISTFILE" ] # if directory history exists
-    then
-	typeset CDHIST
-	i=-1
-	while read -r t		# read directory history file
-	do
-	    CDHIST[i=i+1]=$t
-	done <$CDHISTFILE
-    fi
-
-    if [ "${CDHIST[0]}" != "$PWD" -a "$PWD" != "" ]
-    then
-	_cdins		    # insert $PWD into cd history
-    fi
+    [[ ${CDHIST[0]} != ${PWD} && -n ${PWD} ]] && _cdins		    # insert $PWD into cd history
 
     cdlen=${#CDHIST[*]}		# number of elements in history
 
     case "$@" in
     -)			# cd to new dir
-	if [ "$OLDPWD" = "" ] && ((cdlen>1))
+	if ((cdlen>1))
 	then
 	    echo "${CDHIST[1]}"
 	    _cdto "${CDHIST[1]}"
@@ -86,7 +77,7 @@ function _cdh
 	done
 	return 0
 	;;
-    -[0-9]|-[0-9][0-9])		# cd to dir in list
+    -+([0-9]))		# cd to dir in list
 	if (((i=${1#-})<cdlen))
 	then
 	    echo "${CDHIST[i]}"
@@ -97,23 +88,10 @@ function _cdh
 	;;
     -*)			# cd to matched dir in list
 	t=${1#-}
-	i=1
-	while ((i<cdlen))
-	do
-	    case ${CDHIST[i]} in
-	    *$t*)
-		echo "${CDHIST[i]}"
-		_cdto "${CDHIST[i]}"
-		break
-		;;
-	    esac
-	    ((i=i+1))
-	done
-	if ((i>=cdlen))
-	then
-	    _cdto "$@"
-	fi
-	;;
+        matches=( $(compgen -W "${CDHIST[*]}" -X '!*'${t}'*') )
+        _cdto "${matches[0]:-$@}"
+        ;;
+
     +*)
 	case "$@" in
 	++*)	rel="-e s/.//";;
@@ -152,18 +130,7 @@ function _cdh
 
     _cdins		    # insert $PWD into cd history
 
-    if [ "$CDHISTFILE" ]
-    then
-	cdlen=${#CDHIST[*]}	# number of elements in history
-
-	i=0
-	while ((i<cdlen))
-	do
-	    echo "${CDHIST[i]}"	# update directory history
-	    ((i=i+1))
-	done >$CDHISTFILE
-    fi
-#    set_prompt
+    [[ -n $CDHISTFILE ]] && printf '%s\n' ${CDHIST[@]} > ${CDHISTFILE}
     return 0
 }
 
@@ -186,6 +153,7 @@ function _cdins			# insert $PWD into cd history
 	i=200
     fi
 
+    # replace with one liner array slice
     while (((i=i-1)>=0))	    # bump old dirs in list
     do
 	CDHIST[i+1]=${CDHIST[i]}
@@ -202,7 +170,7 @@ function _cdto
     # esac
 
     WASPWD="$PWD"
-    'cd' "$1"
+    [[ -f $1 ]] && 'cd' ${1%/*} || 'cd' "$1"
 
     # Run ".cdenter CAME-FROM-DIR", but only if we are currently under $HOME
     # case "$PWD" in
@@ -274,4 +242,3 @@ _cdwt_complete() {
 }
 
 complete -F _cdwt_complete cdwt
-    
