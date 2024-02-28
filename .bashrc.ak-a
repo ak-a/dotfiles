@@ -58,7 +58,7 @@ function _bashrc_cleanup() {
     rm -f ${BASHRCDIR}/*.$$.*
 }
 
-function _bashrc_each() {
+function _bashrc_check_source_ood() {
     local _bashrc
     _bashrc_ood=()
     for _bashrc in "${_bashrc_sources[@]}"
@@ -125,7 +125,7 @@ function trapadd() { #command #SIGSPEC
     fi
 }
 
-declare -xf _bashrc_cleanup _bashrc_each trapadd
+declare -xf _bashrc_cleanup _bashrc_check_source_ood trapadd
 
 if [[ -d /run/user ]]; then
     PIDRUNDIR=/run/user
@@ -139,7 +139,7 @@ BASHRCDIR=${PIDRUNDIR}/${UID}/bashrc
 trap "_bashrc_cleanup" EXIT
 mkdir -p ${BASHRCDIR}
 BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
-#trapadd "_bashrc_each" DEBUG
+#trapadd "_bashrc_check_source_ood" DEBUG
 
 _bashrcs=( debug.bash env_manip misc_functions interactive gwt tmux colour prompt cd history keyring fb )
 for i in "${_bashrcs[@]}"
