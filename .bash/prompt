@@ -118,13 +118,16 @@ function prompt_command_timer()
 {
     local _exit_status=$?
     _command_duration=$((SECONDS-_PROMPT_TIMER))
-    prompt_history
+    [[ $(type -t prompt_history) == function ]] && prompt_history
     _PROMPT_CS=$(printf "%02d:%02d:%02d" $((_command_duration/60/60)) $((_command_duration/60%60)) $((_command_duration%60)))
     if [ $_exit_status == 0 ]; then
         _PROMPT_EXIT=$_PROMPT_EXIT_OK$(printf "%3d" $_exit_status)
     else
         _PROMPT_EXIT=$_PROMPT_EXIT_BAD$(printf "%3d" $_exit_status)
     fi
+
+    _bashrc_check_source_ood
+    [[ $(type -t _bashrc_check_source_ood) == function ]] && _bashrc_check_source_ood
     if [[ ${_bashrc_ood[*]} ]]; then
         _PROMPT_OOD_BASHRCS="$_uq_fg_red3( ${_bashrc_ood[*]} )$NO_COLOUR_UQ "
     else
