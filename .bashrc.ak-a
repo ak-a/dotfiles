@@ -2,12 +2,6 @@
 
 # shellcheck disable=SC1090
 
-[[ -r $HOME/.bashrc.debug ]] && {
-    exec 5>> /tmp/bashtrace.$$.txt
-    BASH_XTRACEFD=5
-    set -x
-}
-
 export PATH=~/bin:$PATH
 export CDHISTFILE=~/.cdhistory
 
@@ -15,6 +9,12 @@ export CDHISTFILE=~/.cdhistory
 [[ $- =~ i ]] || return
 ## INTERACTIVE SHELLS ARE US!
 #############################
+
+[[ -r $HOME/.bashrc.debug ]] && {
+    exec 5>> /tmp/bashtrace.$$.txt
+    BASH_XTRACEFD=5
+    set -x
+}
 
 # Shell Declarations
 ####################
@@ -141,7 +141,7 @@ mkdir -p ${BASHRCDIR}
 BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
 #trapadd "_bashrc_each" DEBUG
 
-_bashrcs=( debug.bash env_manip misc_functions interactive tmux colour prompt cd history keyring fb )
+_bashrcs=( debug.bash env_manip misc_functions interactive gwt tmux colour prompt cd history keyring fb )
 for i in "${_bashrcs[@]}"
 do
     _bashrc_source $HOME/.bash/$i

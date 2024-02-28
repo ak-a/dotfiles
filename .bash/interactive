@@ -112,5 +112,3 @@ bash_trap_exit() {
 }
 
 trap -- bash_trap_exit EXIT
-
-[[ -r ~/.bash/gwt ]] && source ~/.bash/gwt

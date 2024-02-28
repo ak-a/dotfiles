@@ -199,3 +199,5 @@ $_bg_yellow$_fg_steelblue3:;$NO_COLOUR "
     #shellcheck disable=SC2031
     export PS1="$_ps1"
 }
+
+declare -xf prompt_command print_prompt
