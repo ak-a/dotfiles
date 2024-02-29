@@ -327,10 +327,9 @@ _gwt_complete() {
 
 #DONT MOVE THIS UP THE FILE
 # need all the _gwtsub_* functions defining before we get here
-declare -a _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p'))
-declare -a _gwt_remote_commands=(find grep)
-declare -a _gwt_no_wt_commands=(clone)
-_gwt_commands+=( "${_gwt_remote_commands[@]}" )
+declare -garx _gwt_no_wt_commands=(clone)
+declare -garx _gwt_remote_commands=(find grep)
+declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
 _gwt_refresh_info 2>/dev/null
 
 gwt() {

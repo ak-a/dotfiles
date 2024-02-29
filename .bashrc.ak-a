@@ -6,7 +6,7 @@ export PATH=~/bin:$PATH
 export CDHISTFILE=~/.cdhistory
 
 # only pass beyond if we are interactive shell
-[[ $- =~ i ]] || return
+#[[ $- =~ i ]] || return
 ## INTERACTIVE SHELLS ARE US!
 #############################
 
