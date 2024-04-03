@@ -4,6 +4,7 @@
 # each has their own _gwt_help[subcommand] entry so gwt help can do its thing
 
 _gwt_bare=
+_gwt_default_branch=
 _gwt_update_epoch=0
 typeset -a _gwt_trees
 typeset -A _gwt_help
@@ -53,6 +54,7 @@ _gwt_refresh_info() {
         wtl=( "${wtl[@]:1}" )           # shift 1
     done
     _gwt_update_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
+    _gwt_default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
     _gwt_get_cwt
 }
 
@@ -179,7 +181,7 @@ function _gwtsub_newbranch() {
     (
         builtin cd $_gwt_bare
         git fetch \
-            && pushd master \
+            && pushd $_gwt_default_branch \
             && git pull \
             && popd \
         && git worktree add -b ${new_wt} ${new_wt} || return $?
@@ -220,8 +222,9 @@ function _gwtsub_clone() {
     git clone --bare $1 ${dest} || return $?
     command cd ${dest}
 
-    default_branch=$(git remote show https://git.drwholdings.com/xd/xd-config | awk '/HEAD/ { print $NF}')
+    default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
     [[ -z $default_branch ]] && { echo "gwt: can't find default branch" &>2; return 1; }
+    _gwt_default_branch=${default_branch}
 
     git worktree add $default_branch &&
         cd $default_branch
@@ -327,9 +330,9 @@ _gwt_complete() {
 
 #DONT MOVE THIS UP THE FILE
 # need all the _gwtsub_* functions defining before we get here
-declare -garx _gwt_no_wt_commands=(clone)
-declare -garx _gwt_remote_commands=(find grep)
-declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
+[[ -z _gwt_no_wt_commands ]] && declare -garx _gwt_no_wt_commands=(clone)
+[[ -z _gwt_remote_commands ]] && declare -garx _gwt_remote_commands=(find grep)
+[[ -z _gwt_commands ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
 _gwt_refresh_info 2>/dev/null
 
 gwt() {
