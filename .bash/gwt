@@ -9,31 +9,15 @@ _gwt_update_epoch=0
 typeset -a _gwt_trees
 typeset -A _gwt_help
 
-# this populates env vars used by the various commands
-_gwt_refresh_info() {
-    local wtl wtl_words
-    local worktrees_epoch=
-    set -o pipefail
 
-    # if we have initialised, but the worktree has been updated then we need to refresh
-    if [[ -n $_gwt_bare && -n $_gwt_update_epoch ]]; then
-        worktrees_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
-        # force a refresh if needed
-        [[ ${worktrees_epoch} -gt ${_gwt_update_epoch} ]] && _gwt_bare=
-    fi
-
-    # if we haven't done any gwt commands or have moved base directory
-    [[ -n $_gwt_bare && $PWD == ${_gwt_bare}/* ]] && {
-        _gwt_get_cwt
-        return 0
-    }
-    unset _gwt_bare _gwt_cwd _gwt_subdir
-
+# 
+_gwt_refresh_trees() {
     # we need to get base and list of trees
-    wtl=($(git worktree list --porcelain 2>/dev/null)) || return $?
-        # expected output give an array looking like
+    local wtl=($(git worktree list --porcelain 2>/dev/null)) || return $?
+    # expected output give an array looking like
     # declare -a wlt=([0]="worktree" [1]="/home/anking/src/k8s-infra.git" [2]="bare" [3]="worktree" [4]="/home/anking/src/k8s-infra.git/RI-23197-bootstrap-argocd" [5]="HEAD" [6]="46045f8ef46b450d3601b99fa7b5dbbf91a08eba" [7]="branch" [8]="refs/heads/RI-23197-bootstrap-argocd" [9]="worktree" [10]="/home/anking/src/k8s-infra.git/master" [11]="HEAD" [12]="b6da006e0569d4e8ae1daf85fbc1dc59a7ddfe32" [13]="branch" [14]="refs/heads/master")
-    [[ ${wtl[0]} == worktree  && ${wtl[2]} == bare ]] || {
+
+    [[ ${wtl[0]} == worktree && ${wtl[2]} == bare ]] || {
         echo "gwt: ERROR can't parse 'git worktree list'" >&2
         return 1
     }
@@ -42,6 +26,7 @@ _gwt_refresh_info() {
     _gwt_bare=${wtl[1]}
     # shift bare out of the way
     wtl=( "${wtl[@]:3}" )
+    #
     # now list the other worktrees...
     _gwt_trees=()
     while [[ ${#wtl[@]} -gt 0 ]]
@@ -54,8 +39,6 @@ _gwt_refresh_info() {
         wtl=( "${wtl[@]:1}" )           # shift 1
     done
     _gwt_update_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
-    _gwt_default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
-    _gwt_get_cwt
 }
 
 # which worktree and subdir are we in
@@ -63,6 +46,38 @@ _gwt_get_cwt() {
     local wd=${PWD#$_gwt_bare/}
     _gwt_cwt=${wd%%/*}  # this is the worktree directory
     _gwt_subdir=${PWD#${_gwt_bare}/${_gwt_cwt}}  # this is the path within the worktree
+}
+
+_gwt_get_default_branch() {
+    _gwt_default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
+}
+
+# this populates env vars used by the various commands
+# needs to do the minimum required so it is quick
+_gwt_refresh_info() {
+    local worktrees_epoch
+    set -o pipefail
+
+    # either we haven't initialised yet or we are now in a different git
+    [[ -n ${_gwt_bare} && ${PWD} =~ ^${_gwt_bare} ]] || { 
+        _gwt_refresh_trees &&
+           _gwt_get_cwt &&
+           _gwt_get_default_branch
+        return $?
+    }
+        
+    # make sure _gwt_{cwt,subidr} are up to date
+    _gwt_get_cwt
+    
+    # if we have initialised, but the worktree has been updated then we need to refresh
+    if [[ -n ${_gwt_update_epoch} ]]; then
+        worktrees_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
+        # force a refresh if needed
+        [[ ${worktrees_epoch} -gt ${_gwt_update_epoch} ]] && _gwt_refresh_trees
+        return $?
+    fi
+
+    return 0
 }
 
 _gwt_match() {
@@ -179,14 +194,14 @@ function _gwtsub_newbranch() {
     jira_ticket=${BASH_REMATCH[1]}
 
     (
-        builtin cd $_gwt_bare
+        builtin cd ${_gwt_bare}
         git fetch \
-            && pushd $_gwt_default_branch \
+            && pushd ${_gwt_default_branch} \
             && git pull \
             && popd \
         && git worktree add -b ${new_wt} ${new_wt} || return $?
     )
-    cd $_gwt_bare/${new_wt} || return $?
+    cd ${_gwt_bare}/${new_wt} || return $?
 
     # now we setup the wt branch
     pre-commit install
@@ -218,7 +233,7 @@ function _gwtsub_nb() {
 _gwtsub_help[remove]='Removes a worktree, if not clean will show details
 '
 function _gwtsub_remove() {     # default is _gwt_cwt
-    pushd $_gwt_bare
+    pushd ${_gwt_bare}
     local wt=${1:-$_gwt_cwt}
     if ! git worktree remove ${wt} $2; then
         cd ${_gwt_bare}/${wt}
@@ -231,7 +246,7 @@ function _gwtsub_remove() {     # default is _gwt_cwt
 _gwtsub_help[fremove]='Removes a worktree with force
 '
 function _gwtsub_fremove() {     # default is _gwt_cwt
-    pushd $_gwt_bare
+    pushd ${_gwt_bare}
     local wt=${1:-$_gwt_cwt}
     git worktree remove ${wt} --force
     popd || popd -n
@@ -241,22 +256,20 @@ function _gwtsub_fremove() {     # default is _gwt_cwt
 _gwtsub_help[clone]='Does clone and setup of a new branch
 '
 function _gwtsub_clone() {
-    local default_branch
     local dest=${1##*/}
 
     git clone --bare $1 ${dest} || return $?
     command cd ${dest}
 
-    default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
-    [[ -z $default_branch ]] && { echo "gwt: can't find default branch" &>2; return 1; }
-    _gwt_default_branch=${default_branch}
+    _gwt_get_default_branch
+    [[ -z ${_gwt_default_branch} ]] && { echo "gwt: can't find default branch" &>2; return 1; }
 
-    git worktree add $default_branch &&
-        cd $default_branch
+    git worktree add ${_gwt_default_branch} &&
+        cd ${_gwt_default_branch}
 }
 
 _gwt_run_command_in_another_tree() { # command remote-worktree args...
-    local remote_dir=${_gwt_bare}/${1}/$_gwt_subdir
+    local remote_dir=${_gwt_bare}/${1}/${_gwt_subdir}
     shift
 
     pushd ${remote_dir} && {
