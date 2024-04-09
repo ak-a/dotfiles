@@ -215,6 +215,31 @@ function _gwtsub_nb() {
     return $?
 }
 
+_gwtsub_help[remove]='Removes a worktree, if not clean will show details
+'
+function _gwtsub_remove() {     # default is _gwt_cwt
+    pushd $_gwt_bare
+    local wt=${1:-$_gwt_cwt}
+    if ! git worktree remove ${wt} $2; then
+        cd ${_gwt_bare}/${wt}
+        git status
+    fi
+    popd || popd -n
+    return $?
+}
+
+_gwtsub_help[fremove]='Removes a worktree with force
+'
+function _gwtsub_fremove() {     # default is _gwt_cwt
+    pushd $_gwt_bare
+    local wt=${1:-$_gwt_cwt}
+    git worktree remove ${wt} --force
+    popd || popd -n
+    return $?
+}
+
+_gwtsub_help[clone]='Does clone and setup of a new branch
+'
 function _gwtsub_clone() {
     local default_branch
     local dest=${1##*/}
@@ -301,6 +326,10 @@ _gwt_complete() {
     case "${subcommand}" in
         cd)
             COMPREPLY=( $( compgen -W "${_gwt_trees[*]/$_gwt_cwt}" -- ${cur}) )
+            return 0
+            ;;
+        remove)
+            COMPREPLY=( $( compgen -W "${_gwt_trees[*]}" -- ${cur}) )
             return 0
             ;;
         cp|diff)
