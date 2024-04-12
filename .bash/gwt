@@ -70,10 +70,8 @@ _gwt_refresh_info() {
     _gwt_get_cwt
     
     # if we have initialised, but the worktree has been updated then we need to refresh
-    if [[ -n ${_gwt_update_epoch} ]]; then
-        worktrees_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
-        # force a refresh if needed
-        [[ ${worktrees_epoch} -gt ${_gwt_update_epoch} ]] && _gwt_refresh_trees
+    if [[ -n ${_gwt_update_epoch} && $(date -r ${_gwt_bare}/worktrees +%s) -gt ${_gwt_update_epoch} ]]; then
+        _gwt_refresh_trees
         return $?
     fi
 
@@ -372,9 +370,9 @@ _gwt_complete() {
 
 #DONT MOVE THIS UP THE FILE
 # need all the _gwtsub_* functions defining before we get here
-[[ -z _gwt_no_wt_commands ]] && declare -garx _gwt_no_wt_commands=(clone)
-[[ -z _gwt_remote_commands ]] && declare -garx _gwt_remote_commands=(find grep)
-[[ -z _gwt_commands ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
+[[ -z $_gwt_no_wt_commands ]] && declare -garx _gwt_no_wt_commands=(clone)
+[[ -z $_gwt_remote_commands ]] && declare -garx _gwt_remote_commands=(find grep)
+[[ -z $_gwt_commands ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
 _gwt_refresh_info 2>/dev/null
 
 gwt() {
