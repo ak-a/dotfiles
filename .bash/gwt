@@ -201,10 +201,16 @@ function _gwtsub_newbranch() {
     )
     cd ${_gwt_bare}/${new_wt} || return $?
 
-    # now we setup the wt branch
-    pre-commit install
+    # now we setup the worktree branch
+    # install pre-commit if repo has config
+    [[ -r .pre-commit-config.yaml ]] && type -t pre-commit >/dev/null && pre-commit install
+    # set the upstream for future push
     git push --set-upstream origin ${new_wt}
 
+    _git_set_commit_message $jira_ticket
+}
+
+_git_set_commit_message() { #jira_ticket
     # choose what this is commit type
     if type -t gum &>/dev/null; then
         # use gum as preferred option
@@ -216,7 +222,7 @@ function _gwtsub_newbranch() {
         done
     fi
     cat > .gitmessage <<GITMESSAGE
-$git_emoji $jira_ticket ####SUBJECT WHAT####
+$git_emoji ${1:-UPPI} ####SUBJECT WHAT####
 GITMESSAGE
     git config commit.template .gitmessage
 }

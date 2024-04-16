@@ -13,3 +13,4 @@
 .vim/bundle/vim-tmux
 .bash/completion-*
 Session.vim
+.gitmessage
