@@ -126,10 +126,9 @@ function prompt_command_timer()
         _PROMPT_EXIT=$_PROMPT_EXIT_BAD$(printf "%3d" $_exit_status)
     fi
 
-    _bashrc_check_source_ood
     [[ $(type -t _bashrc_check_source_ood) == function ]] && _bashrc_check_source_ood
     if [[ ${_bashrc_ood[*]} ]]; then
-        _PROMPT_OOD_BASHRCS="$_uq_fg_red3( ${_bashrc_ood[*]} )$NO_COLOUR_UQ "
+        _PROMPT_OOD_BASHRCS="$_uq_fg_red3 rcood( ${_bashrc_ood[*]##*/} )$NO_COLOUR_UQ "
     else
         unset _PROMPT_OOD_BASHRCS
     fi
