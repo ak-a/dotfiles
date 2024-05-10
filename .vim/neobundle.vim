@@ -37,6 +37,7 @@ NeoBundle 'morhetz/gruvbox'
 NeoBundle 'mustache/vim-mustache-handlebars'
 NeoBundle 'neoclide/coc.nvim', 'release'
 NeoBundle 'pangloss/vim-javascript'
+NeoBundle 'preservim/vimux'
 NeoBundle 'scrooloose/nerdcommenter'
 NeoBundle 'scrooloose/nerdtree'
 "NeoBundle 'scrooloose/syntastic' deprecated for ale
@@ -55,8 +56,13 @@ NeoBundle 'tpope/vim-surround'
 NeoBundle 'vim-airline/vim-airline'
 NeoBundle 'vim-airline/vim-airline-themes'
 NeoBundle 'whatyouhide/vim-tmux-syntax'
+NeoBundle 'Xuyuanp/nerdtree-git-plugin'
 NeoBundle 'yasuhiroki/github-actions-yaml.vim'
 NeoBundle 'yggdroot/indentline'
+NeoBundle 'yuttie/comfortable-motion.vim'
+
+" needs to be after the other nerdtree stuff
+NeoBundle 'ryanoasis/vim-devicons'
 
 call neobundle#end()
 NeoBundleCheck

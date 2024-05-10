@@ -55,6 +55,7 @@ call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
 call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
 call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
 nnoremap <silent> <leader>E :NERDTreeToggleVCS<CR>
+nnoremap <silent> <leader>f :NERDTreeFind<CR>
 nnoremap <silent> <F2> :NERDTreeToggleVCS<CR>
 
 " terraform
@@ -72,7 +73,6 @@ let g:go_highlight_types = 1
 let g:go_metalinter_autosave = 1
 autocmd FileType go nmap <leader>b  <Plug>(go-build)
 autocmd FileType go nmap <leader>r  <Plug>(go-run)
-
 
 " bash is our sh default
 let g:is_bash=1
@@ -155,3 +155,5 @@ set statusline+=" %{ObsessionStatus()"}
 " indentline settings
 let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
 
+" Vimux settings
+map <leader>. :VimuxRunLastCommand<CR>
