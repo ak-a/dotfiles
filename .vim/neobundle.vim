@@ -43,6 +43,7 @@ NeoBundle 'scrooloose/nerdtree'
 "NeoBundle 'scrooloose/syntastic' deprecated for ale
 "NeoBundle 'SirVer/ultisnips'
 NeoBundle 'sodapopcan/vim-twiggy'
+NeoBundle 'thaerkh/vim-workspace'
 NeoBundle 'tmux-plugins/vim-tmux'
 NeoBundle 'tmux-plugins/vim-tmux-focus-events'
 NeoBundle 'towolf/vim-helm'

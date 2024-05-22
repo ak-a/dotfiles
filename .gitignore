@@ -13,4 +13,6 @@
 .vim/bundle/vim-tmux
 .bash/completion-*
 Session.vim
+.Session.vim
 .gitmessage
+**/.undodir/**
