@@ -25,14 +25,18 @@ augroup END
 
 " ### NERDTree config
 autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+"autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 " settings
 let g:NERDTreeShowHidden = 1
 let g:NERDTreeMinimalUI = 1
-let g:NERDTreeIgnore = ['^\.DS_Store$', '^tags$', '^\.git$[[dir]]', '\.idea$[[dir]]', '\.sass-cache$', '\.*\~$', '\..*\.sw[a-z]$', '\..*\.un\~$', '.*\~$']
+let g:NERDTreeIgnore  = ['^\.DS_Store$', '^tags$', '\.idea$[[dir]]', '\.sass-cache$']
+" git stuff to ignore
+let g:NERDTreeIgnore += ['^\.git$[[dir]]', '\.git$']
+" vim stuff to ignore
+let g:NERDTreeIgnore += ['\.*\~$', '\..*\.sw[a-z]$', '\..*\.un\~$', '.*\~$', '.undodir']
 let g:NERDTreeNodeDelimiter = "\u00a0"
 
 " File highlighting
@@ -157,3 +161,8 @@ let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
 
 " Vimux settings
 map <leader>. :VimuxRunLastCommand<CR>
+
+" vim-workspace settings
+let g:workspace_autocreate = 1
+let g:workspace_session_name = '.Session.vim'
+let g:workspace_autosave_ignore = ['gitcommit']
