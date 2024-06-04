@@ -60,7 +60,8 @@ NeoBundle 'whatyouhide/vim-tmux-syntax'
 NeoBundle 'Xuyuanp/nerdtree-git-plugin'
 NeoBundle 'yasuhiroki/github-actions-yaml.vim'
 NeoBundle 'yggdroot/indentline'
-NeoBundle 'yuttie/comfortable-motion.vim'
+" doesn't work in split windows, sad
+" NeoBundle 'yuttie/comfortable-motion.vim'
 
 " needs to be after the other nerdtree stuff
 NeoBundle 'ryanoasis/vim-devicons'
