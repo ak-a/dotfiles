@@ -1,5 +1,12 @@
 #!bash
 
+# this is our history setup stuff
+export HISTDIR=$HOME/.histdir
+export HISTARCHIVE=$HOME/.histarchive
+[[ -d $HISTDIR ]] || mkdir -p $HISTDIR
+[[ -d $HISTARCHIVE ]] || mkdir -p $HISTARCHIVE
+HISTFILEMERGE=$HOME/.bash_history_merged
+export HISTMAXSIZE=1000000      # max of 10m lines of history
 
 # Shell history stuff
 shopt -s cmdhist
@@ -7,18 +14,15 @@ shopt -s histappend
 shopt -s histreedit
 shopt -s histverify
 
-export HISTDIR=$HOME/.histdir
-export HISTARCHIVE=$HOME/.histarchive
-[[ -d $HISTDIR ]] || mkdir -p $HISTDIR
-[[ -d $HISTARCHIVE ]] || mkdir -p $HISTARCHIVE
-HISTFILEMERGE=$HOME/.bash_history_merged
-
+# see help history for these settings, or man bash
 HISTCONTROL=ignoredups:ignorespace:erasedups
 HISTFILE=$HISTDIR/${HOSTNAME:-$(hostname -s)}.$(tty | cut -d/ -f4).$$
-HISTSIZE=100000         # our history is up to 100k lines
-HISTFILESIZE=100000     # keep a million of merged history
+HISTFILESIZE=${HISTMAXSIZE}        # keep a 10m of merged history
+HISTSIZE=${HISTMAXSIZE}            # keep all the history whilst we merge things
 HISTTIMEFORMAT="[%Y-%m-%dT%H:%M:%S] "
 
+# this is to get shell history from currently running shells or shells that
+# have exitted abnormally and so haven't merged their shell history
 _slurp_other_shell_histories() {
     local shell_history
     local history_fullpath
@@ -32,6 +36,7 @@ _slurp_other_shell_histories() {
     while read -r shell_history
     do
         history_fullpath=$HISTDIR/$shell_history
+        echo history processing $history_fullpath
         if [[ $(readlink /proc/${shell_history##*.}/exe) =~ bash ]]; then
             # if the shell is still running don't merge yet, this is so we
             # can write a merge file of shells that didn't exit cleanly (reboot maybe)
@@ -39,6 +44,7 @@ _slurp_other_shell_histories() {
         else
             # shell isn't running, so we can ready and then do a merge below
             history -r ${history_fullpath}
+            mv ${history_fullpath} ${HISTARCHIVE}
         fi
     done < <(ls -rt1 $HISTDIR)
 
@@ -48,6 +54,9 @@ _slurp_other_shell_histories() {
     history_merge
     # clear read pre-merged histories
     history -c
+    export HISTFILESIZE=10000           # our history is up to 10k lines
+    history -w      # don't duplicate merged history in our file
+    history -a
     [[ -r $HISTFILEMERGE ]] && history -r $HISTFILEMERGE
 
     # now we can read shell history of running shells.
@@ -81,11 +90,13 @@ get_lock_on_file() {
 history_merge_at_shell_exit() {
     history_merge
     # keep a backup
-    mv -i $ourhistfile $HISTARCHIVE    # keep history file just in case
+    mv -i $HISTFILE $HISTARCHIVE    # keep history file just in case
 }
+
 history_merge() {
     local lockfile=$HISTDIR/_merge.lock
     local ourhistfile=$HISTFILE
+    local ourhistfilesize=$HISTFILESIZE
 
     # if we didn't set a MERGE filename, skip
     [[ -z $HISTFILEMERGE ]] && return
@@ -95,28 +106,33 @@ history_merge() {
     history -a                      # add any missing history to our HISTFILE
     unset HISTFILE                  # now munge history without clobbering our HISTFILE
     history -c                      # clear HISTORY
-    #history | wc -l
     history -r $HISTFILEMERGE       # read old merged file
+    history -r $ourhistfile         # read back our history
     #history | wc -l
-    history -r $ourhistfile
-    #history | wc -l
+    HISTFILESIZE=${HISTMAXSIZE}     # make sure we can merge all the history up to max in a file
     history -w $lockfile            # write the new merge
 
     # now archive old merge and keep a few around
-    logrotate --log $HISTARCHIVE/logrotate.log --state $HISTARCHIVE/logrotate.state $HISTARCHIVE/logrotate.conf
+    logrotate --log $HISTARCHIVE/logrotate.log --state $HISTARCHIVE/logrotate.state $HISTARCHIVE/logrotate.conf --force
     mv -i $HISTFILEMERGE $HISTARCHIVE/merged
     mv $lockfile $HISTFILEMERGE     # now put merged history in place for next shell
+    #wc -l $HISTFILEMERGE
+    
+    # put our shell settings back
+    export HISTFILE=$ourhistfile
+    export HISTFILESIZE=${ourhistfilesize}        # set back so we only keep 10k of our history in a file
 }
 
+[[ -z ${_HISTORYFIRSTRUN} ]] && _slurp_other_shell_histories
 
 # assumes a 'history -a' in prompt_command and
-# needs a history -w $HISTFILEMERGE in .bash_logout
+# needs a history_merge in .bash_logout
 prompt_history() {
-    [[ -z ${_HISTORYFIRSTRUN} ]] && _slurp_other_shell_histories
     history -a
     history -n
 }
-declare -xf prompt_history history_merge_at_shell_exit
+
+declare -xf prompt_history history_merge_at_shell_exit history_merge
 
 cat <<CONF > $HISTARCHIVE/logrotate.conf
 $HISTARCHIVE/merged {

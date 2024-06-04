@@ -65,6 +65,9 @@ NeoBundle 'yuttie/comfortable-motion.vim'
 " needs to be after the other nerdtree stuff
 NeoBundle 'ryanoasis/vim-devicons'
 
+" not sure about this, so leave at this endwise
+"NeoBundle 'Exafunction/codeium.vim', { 'tag': '1.8.30' }
+
 call neobundle#end()
 NeoBundleCheck
 
