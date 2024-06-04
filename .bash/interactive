@@ -55,6 +55,7 @@ PrependPath $HOME/bin
 
 # to avoid cm issues on centOS 5
 export EDITOR=vim
+export FIGNORE="~:.sw?:.un~"
 
 #
 
@@ -65,6 +66,13 @@ alias grep='grep --color'                     # show differences in colour
 #alias ls='ls -h --color=tty'                 # classify files in colour
 alias mux=tmuxinator
 type -t jless &>/dev/null && alias yless="jless --yaml"
+
+# shopt
+# #####
+
+shopt -s autocd        # can type bin<CR> to cd to bin
+shopt -s cdspell       # autocorrect cd spellings
+shopt -s execfail      # don't exit if exec fails
 
 # Functions
 # #########
@@ -112,3 +120,11 @@ bash_trap_exit() {
 }
 
 trap -- bash_trap_exit EXIT
+
+kb() {
+    local kbdir
+    [[ -f ${1} && ${1} =~ .*/kustomization.yaml ]] && kbdir=${1%/*} || kbdir=${1}
+    [[ -d $kbdir ]] || { echo "kb: $kbdir not a directory" >&2; return 1; }
+    [[ -r $kbdir/kustomization.yaml ]] || { echo "kb: $kbdir not a kustomize directory" >&2; return 1; }
+    kustomize build --enable-helm --load-restrictor LoadRestrictionsNone $kbdir
+}

@@ -163,6 +163,12 @@ let g:indentLine_char_list = ['│', '|', '¦', '┆', '┊']
 map <leader>. :VimuxRunLastCommand<CR>
 
 " vim-workspace settings
-let g:workspace_autocreate = 1
+let g:workspace_autocreate = 0
 let g:workspace_session_name = '.Session.vim'
 let g:workspace_autosave_ignore = ['gitcommit']
+nnoremap <silent> <F3> :ToggleWorkspace<CR>
+
+" codeium
+let g:codeium_server_config = {
+      \'portal_url': 'https://codeium.drwholdings.com',
+        \'api_url': 'https://codeium.drwholdings.com/_route/api_server' }
