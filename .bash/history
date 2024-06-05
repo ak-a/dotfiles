@@ -59,6 +59,7 @@ _slurp_other_shell_histories() {
             history_merge
             # clear read pre-merged histories
             history -c
+            rm $HISTDIR/_merge_old.lock
         else
             # can't get a lock, so we will read, but leave filesystem alone
             for history_fullpath in "${gone_history[@]}"
