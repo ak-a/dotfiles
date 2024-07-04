@@ -68,7 +68,7 @@ let g:terraform_fold_sections=1
 let g:terraform_fmt_on_save=1
 
 " vim-go settings
-let g:go_auto_type_info = 1 
+let g:go_auto_type_info = 1
 let g:go_fmt_command = "goimports"
 let g:go_highlight_fields = 1
 let g:go_highlight_function_calls = 1
@@ -100,10 +100,37 @@ let g:syntastic_yaml_checkers = [ "yamllint" ]
 let g:syntastic_yaml_checkers = [ "jsonlint" ]
 endif
 
+set completeopt=menu,menuone,preview,popup
+
 " Ale settings
-let g:ale_fixers = {}
-let g:ale_fixers.python = ['black']
 let g:ale_python_flake8_options = '--max-line-length=118'
+let g:ale_completion_enabled = 0
+" cr accept the completion
+"inoremap <expr> <CR> pumvisible() ? "<C-y>" : "<CR>"
+"set omnifunc=ale#completion#OmniFunc
+let g:ale_fixers      = {
+    \ "*": ['trim_whitespace', 'remove_trailing_lines'],
+    \ 'javascript': ['prettier', 'eslint'],
+    \ 'python': ['black'],
+    \ 'sh': ['shellcheck', 'shfmt'],
+    \ 'yaml': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
+    \ 'yaml.gha': ['prettier'],
+    \}
+let g:ale_linters      = {
+    \ 'javascript': ['prettier', 'eslint'],
+    \ 'sh': ['shellcheck', 'shfmt'],
+    \ 'yaml': ['prettier', 'yamllint'],
+    \ 'yaml.gha': ['prettier', 'actionlint'],
+    \}
+" ale-actionlint
+ au BufRead,BufNewFile */.github/*/*.y{,a}ml
+    \ let b:ale_linters = {
+    \   'yaml.gha': ['prettier', 'actionlint'],
+    \   'yaml': ['prettier', 'actionlint'],
+    \}
+let g:ale_fix_on_save = 1
+nmap <F8> <Plug>(ale_fix)
+let g:airline#extensions#ale#enabled = 1
 
 "VC stuff....
 let g:vc_browse_cache_all = 1
@@ -170,5 +197,5 @@ nnoremap <silent> <F3> :ToggleWorkspace<CR>
 
 " codeium
 let g:codeium_server_config = {
-      \'portal_url': 'https://codeium.drwholdings.com',
-        \'api_url': 'https://codeium.drwholdings.com/_route/api_server' }
+    \'portal_url': 'https://codeium.drwholdings.com',
+    \'api_url': 'https://codeium.drwholdings.com/_route/api_server' }
