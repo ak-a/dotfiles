@@ -1,4 +1,5 @@
 {
+  "diagnostic.displayByAle": true,
   "suggest.noselect": false,
   "diagnostic.errorSign": "✘",
   "diagnostic.warningSign": "!",
@@ -12,12 +13,15 @@
     "scss",
     "go"
   ],
-  "coc.preferences.hoverTarget": "float",
   "languageserver": {
     "golang": {
       "command": "gopls",
-      "rootPatterns": ["go.mod"],
-      "filetypes": ["go"]
+      "rootPatterns": [
+        "go.mod"
+      ],
+      "filetypes": [
+        "go"
+      ]
     }
   },
   "go.goplsOptions": {
