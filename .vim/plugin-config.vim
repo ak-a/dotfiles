@@ -112,13 +112,13 @@ let g:ale_fixers      = {
     \ "*": ['trim_whitespace', 'remove_trailing_lines'],
     \ 'javascript': ['prettier', 'eslint'],
     \ 'python': ['black'],
-    \ 'sh': ['shellcheck', 'shfmt'],
+    \ 'sh': ['shfmt'],
     \ 'yaml': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
     \ 'yaml.gha': ['prettier'],
     \}
 let g:ale_linters      = {
     \ 'javascript': ['prettier', 'eslint'],
-    \ 'sh': ['shellcheck', 'shfmt'],
+    \ 'sh': ['bashate', 'cspell', 'language_server', 'shell', 'shellcheck'],
     \ 'yaml': ['prettier', 'yamllint'],
     \ 'yaml.gha': ['prettier', 'actionlint'],
     \}
