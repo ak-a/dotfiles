@@ -38,6 +38,8 @@ _gwt_refresh_trees() {
         fi
         wtl=( "${wtl[@]:1}" )           # shift 1
     done
+    IFS=$'\n' _gwt_trees=($(sort <<<"${_gwt_trees[*]}"))
+    unset IFS
     _gwt_update_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
 }
 
@@ -54,7 +56,9 @@ _gwt_get_default_branch() {
 
 # this populates env vars used by the various commands
 # needs to do the minimum required so it is quick
-_gwt_refresh_info() {
+_gwtsub_help[refresh]='Does a refresh of worktree trees etc.
+'
+_gwtsub_refresh() {
     local worktrees_epoch
     set -o pipefail
 
@@ -179,7 +183,13 @@ _gwtsub_pull() { # remote-worktree path ...
     return $?
 }
 
+function join_by { local IFS="$1"; shift; echo "$*"; }
+
 readarray -t _git_emojis < ~/.git-emoji
+readarray -t _gwt_commit < ~/.conventional-commit
+_gwt_commit_type=(${_gwt_commit[@]%% *})
+_gwt_commit_type_re="($(join_by '|' "${_gwt_commit_type[@]}"))"
+
 _gwt_help[newbranch]='Usage: gwt newbranch <worktree>
 Creates a new git worktree <worktree> with branch named the same and
 git upstream branch name setup.
@@ -187,9 +197,10 @@ git upstream branch name setup.
 function _gwtsub_newbranch() {
     local new_wt=${1?Missing Worktree/branch}
 
-    local jira_ticket git_emoji
-    [[ ${new_wt} =~ ^([A-Z]{2,}-[0-9]+)(-.*)? ]] || { echo "nwtb: '${new_wt}' doesn't start with a JIRA ticket number XX*-dd*" ; return 2; }
-    jira_ticket=${BASH_REMATCH[1]}
+    local jira_ticket git_emoji cc_type
+    [[ ${new_wt} =~ ^${_gwt_commit_type_re}-([A-Z]{2,}-[0-9]+)(-.*)? ]] || { echo "nwtb: '${new_wt}' doesn't match cctype-JIRA e.g. fix-XX*-dd*" ; return 2; }
+    cc_type=${BASH_REMATCH[1]}
+    jira_ticket=${BASH_REMATCH[2]}
 
     (
         builtin cd ${_gwt_bare}
@@ -207,22 +218,12 @@ function _gwtsub_newbranch() {
     # set the upstream for future push
     git push --set-upstream origin ${new_wt}
 
-    _git_set_commit_message $jira_ticket
+    _git_set_commit_message $cc_type $jira_ticket
 }
 
-_git_set_commit_message() { #jira_ticket
-    # choose what this is commit type
-    if type -t gum &>/dev/null; then
-        # use gum as preferred option
-        git_emoji=$(gum choose --height 20 "${_git_emojis[@]}" | cut -d' ' -f1)
-    else
-        select git_emoji in "${_git_emojis[@]}"
-        do
-            break;
-        done
-    fi
+_git_set_commit_message() { # conventional-commit-type jira-ticket
     cat > .gitmessage <<GITMESSAGE
-$git_emoji ${1:-UPPI} ####SUBJECT WHAT####
+${1:-feat}: ${2:-UPPI} ####SUBJECT WHAT####
 GITMESSAGE
     git config commit.template .gitmessage
 }
@@ -250,11 +251,19 @@ function _gwtsub_remove() {     # default is _gwt_cwt
 _gwtsub_help[fremove]='Removes a worktree with force
 '
 function _gwtsub_fremove() {     # default is _gwt_cwt
-    pushd ${_gwt_bare}
+    pushd ${_gwt_bare} || return $?
     local wt=${1:-$_gwt_cwt}
     git worktree remove ${wt} --force
     popd || popd -n
     return $?
+}
+
+_gwtsub_help[ls]='List worktrees
+'
+function _gwtsub_ls() {
+    _gwt_refresh_trees
+
+    printf "%s\n" "${_gwt_trees[@]}"
 }
 
 _gwtsub_help[clone]='Does clone and setup of a new branch
@@ -318,7 +327,7 @@ _gwt_complete() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     subcommand="${COMP_WORDS[1]}"
 
-    _gwt_refresh_info
+    _gwtsub_refresh
 
     if [[ ${COMP_CWORD} -eq 1 ]]; then
         COMPREPLY=( $(compgen -W "${_gwt_commands[*]} ${_gwt_remote_commands[*]}" -- ${cur}) )
@@ -379,7 +388,7 @@ _gwt_complete() {
 [[ -z $_gwt_no_wt_commands ]] && declare -garx _gwt_no_wt_commands=(clone)
 [[ -z $_gwt_remote_commands ]] && declare -garx _gwt_remote_commands=(find grep)
 [[ -z $_gwt_commands ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
-_gwt_refresh_info 2>/dev/null
+_gwtsub_refresh 2>/dev/null
 
 gwt() {
     local gwt_command="_gwtsub_${1}"
@@ -397,7 +406,7 @@ gwt() {
         return $?
     }
 
-    _gwt_refresh_info || return $?
+    _gwtsub_refresh || return $?
 
     [[ -z _gwt_bare ]] && {
         echo "gwt: ERROR not in git worktree directory" >&2
