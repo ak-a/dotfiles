@@ -62,7 +62,7 @@ export FIGNORE="~:.sw?:.un~"
 # Aliases
 # #######
 
-alias grep='grep --color'                     # show differences in colour
+alias grep='grep --exclude "*~" --exclude ".*sw?" --exclude ".*.un~" --color'                     # show differences in colour
 #alias ls='ls -h --color=tty'                 # classify files in colour
 alias mux=tmuxinator
 type -t jless &>/dev/null && alias yless="jless --yaml"

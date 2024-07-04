@@ -58,7 +58,8 @@ generate_colours()
 	for g in f b
 	do
 	    for c in red yellow steelblue3 black green cyan purple white \
-		red3 darkgreen grey93 sandybrown grey42 green3 Khaki1 red1
+		red3 darkgreen grey93 sandybrown grey42 green3 Khaki1 red1 \
+                mistyrose3 thistle1
 	    do
 		quotedcolour _${g}g_$c $c $setab
 		unquotedcolour _uq_${g}g_$c $c $setab

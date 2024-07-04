@@ -187,19 +187,9 @@ trapadd 'command_timer_start' DEBUG
 
 sudo()
 {
-    local _ps1="$PS1"
-    (
-        #shellcheck disable=SC2030
-        export PS1="$_fg_red: $_bg_red$_fg_yellow### \\u ###$NO_COLOUR \
-$_fg_purple@\
-$_fg_steelblue3$HOSTNAME\
-$_fg_steelblue3 \w ;\n\
-$_bg_yellow$_fg_steelblue3:;$NO_COLOUR "
-
-        command sudo "$@"
-    )
-    #shellcheck disable=SC2031
-    export PS1="$_ps1"
+    [[ -n $TMUX ]] && tmux select-pane -P bg=thistle1
+    command sudo "$@"
+    [[ -n $TMUX ]] && tmux select-pane -P bg=default
 }
 
 declare -xf prompt_command print_prompt
