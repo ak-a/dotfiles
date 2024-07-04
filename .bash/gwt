@@ -2,6 +2,8 @@
 #
 # all _gwtsub_* are sub-commands by naming convention
 # each has their own _gwt_help[subcommand] entry so gwt help can do its thing
+#
+# shellcheck disable=SC2206,SC2207
 
 _gwt_bare=
 _gwt_default_branch=
@@ -56,10 +58,10 @@ _gwt_get_default_branch() {
 
 # this populates env vars used by the various commands
 # needs to do the minimum required so it is quick
+# shellcheck disable=SC2154
 _gwtsub_help[refresh]='Does a refresh of worktree trees etc.
 '
 _gwtsub_refresh() {
-    local worktrees_epoch
     set -o pipefail
 
     # either we haven't initialised yet or we are now in a different git
@@ -87,12 +89,12 @@ _gwt_match() {
 
     regex="\<${1}\>"
     # first we do exact match
-    [[ "${_gwt_trees[@]}" =~ ${regex} ]] && { echo ${1}; return 0; }
+    [[ "${_gwt_trees[*]}" =~ ${regex} ]] && { echo ${1}; return 0; }
 
     # now we guess we might have a glob match...
     for wt in "${_gwt_trees[@]}"
     do
-        [[ $wt = ${1} ]] && {
+        [[ ${wt} == "${1}" ]] && {
             echo ${wt}
             return 0
         }
@@ -105,21 +107,25 @@ _gwt_match() {
 _gwt_help[cd]='Usage: gwt cd <worktree>
 '
 _gwtsub_cd() {
-    local wt rc
+    local wt
 
-    [[ ${1} == ${_gwt_cwt} ]] && return
+    [[ ${1} == "${_gwt_cwt}" ]] && return
 
     wt=$(_gwt_match ${1})
+    # shellcheck disable=SC2181
     [[ $? -ne 0 ]] && {
         echo "gwt cd: ERROR '$1' not a worktree" >&2
         return 1
     }
-    cd ${_gwt_bare}/${wt}/${_gwt_subdir}
-    return $?
+    cd ${_gwt_bare}/${wt}/${_gwt_subdir} ||
+        return $?
+    return 0
 }
 
 # supports diff and cp as they do almost the same thing
 _gwt_dosub_command() { # path ... dest-worktree
+
+    local dest_wt
 
     cmd_to_run=$1
     shift
@@ -128,13 +134,11 @@ _gwt_dosub_command() { # path ... dest-worktree
         return 1
     }
 
-    local dest_wt=$(_gwt_match ${@: -1})
-    [[ $? -ne 0 ]] && {
-        echo "gwt ${cmd_to_run}: ERROR ${@: -1} not a worktree" >&2
+    dest_wt=$(_gwt_match "${@: -1}") || {
+        echo "gwt ${cmd_to_run}: ERROR ${*: -1} not a worktree" >&2
         return 1
     }
 
-    local cur_wt_base=${_gwt_bare}/${_gwt_cwt}
     local dest_wt_base=${_gwt_bare}/${dest_wt}
     local gwtp=${_gwt_bare}/${_gwt_cwt}
     local file file_rp rel_file
@@ -146,8 +150,7 @@ _gwt_dosub_command() { # path ... dest-worktree
             echo "gwt ${cmd_to_run}: NOSUCHFILE '$file'" >&2
             return 1
         }
-        file_rp=$(realpath -s "${file}")
-        [[ $? -ne 0 ]] && {
+        file_rp=$(realpath -s "${file}") || {
             echo "gwt ${cmd_to_run}: ERROR 'realpath $file' failed" >&2
             return 1
         }
@@ -197,7 +200,7 @@ git upstream branch name setup.
 function _gwtsub_newbranch() {
     local new_wt=${1?Missing Worktree/branch}
 
-    local jira_ticket git_emoji cc_type
+    local jira_ticket cc_type
     [[ ${new_wt} =~ ^${_gwt_commit_type_re}-([A-Z]{2,}-[0-9]+)(-.*)? ]] || { echo "nwtb: '${new_wt}' doesn't match cctype-JIRA e.g. fix-XX*-dd*" ; return 2; }
     cc_type=${BASH_REMATCH[1]}
     jira_ticket=${BASH_REMATCH[2]}
@@ -228,26 +231,21 @@ GITMESSAGE
     git config commit.template .gitmessage
 }
 
-_gwtsub_help[nb]='Alias for gwt newbranch
-'
-function _gwtsub_nb() {
-    _gwt_newbranch "$@"
-    return $?
-}
-
+# shellcheck disable=SC2154
 _gwtsub_help[remove]='Removes a worktree, if not clean will show details
 '
 function _gwtsub_remove() {     # default is _gwt_cwt
-    pushd ${_gwt_bare}
-    local wt=${1:-$_gwt_cwt}
+    pushd ${_gwt_bare} || return $?
+    local wt=${1:-${_gwt_cwt?No worktree specified}}
     if ! git worktree remove ${wt} $2; then
-        cd ${_gwt_bare}/${wt}
+        cd ${_gwt_bare}/${wt} || return $?
         git status
     fi
     popd || popd -n
     return $?
 }
 
+# shellcheck disable=SC2154
 _gwtsub_help[fremove]='Removes a worktree with force
 '
 function _gwtsub_fremove() {     # default is _gwt_cwt
@@ -258,27 +256,30 @@ function _gwtsub_fremove() {     # default is _gwt_cwt
     return $?
 }
 
-_gwtsub_help[ls]='List worktrees
+# shellcheck disable=SC2154
+_gwtsub_help[list]='List worktrees
 '
-function _gwtsub_ls() {
+function _gwtsub_list() {
     _gwt_refresh_trees
 
     printf "%s\n" "${_gwt_trees[@]}"
 }
 
+# shellcheck disable=SC2154
 _gwtsub_help[clone]='Does clone and setup of a new branch
 '
 function _gwtsub_clone() {
     local dest=${1##*/}
 
     git clone --bare $1 ${dest} || return $?
-    command cd ${dest}
+    command cd ${dest} || return $?
 
     _gwt_get_default_branch
+    # shellcheck disable=SC2210
     [[ -z ${_gwt_default_branch} ]] && { echo "gwt: can't find default branch" &>2; return 1; }
 
     git worktree add ${_gwt_default_branch} &&
-        cd ${_gwt_default_branch}
+        cd ${_gwt_default_branch} || return $?
 }
 
 _gwt_run_command_in_another_tree() { # command remote-worktree args...
@@ -287,10 +288,11 @@ _gwt_run_command_in_another_tree() { # command remote-worktree args...
 
     pushd ${remote_dir} && {
         "$@"
-        popd
+        popd || return $?
     }
 }
 
+# shellcheck disable=SC2120
 _gwtsub_help() { # command
     local regex
 
@@ -300,17 +302,17 @@ Usage: gwt <command>
 <command> is one of ${_gwt_commands[@]}
 USAGE
         return 0
-}
+    }
 
     regex="\<${1}\>"
-    [[ ${_gwt_remote_commands[@]} =~ ${regex} ]] || {
+    [[ ${_gwt_remote_commands[*]} =~ ${regex} ]] || {
         cat <<REMOTE_COMMANDS
 Usage: gwt <command> <worktree> <args>
 run <command> <args> in remote <worktree>
 REMOTE_COMMANDS
         return 0
     }
-    [[ ${_gwt_commands[@]} =~ ${regex} ]] || {
+    [[ ${_gwt_commands[*]} =~ ${regex} ]] || {
         echo "gwt: ERROR '${1}' not a command" >&2
         _gwtsub_help
         return 2
@@ -319,22 +321,23 @@ REMOTE_COMMANDS
     return 0
 }
 
-_gwt_complete() {
-    local cur prev opts subcommand worktree regex
+_gwt_complete()
+{
+    local cur subcommand worktree regex
     COMPREPLY=()
     local branches=()
     cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    #prev="${COMP_WORDS[COMP_CWORD-1]}"
     subcommand="${COMP_WORDS[1]}"
 
     _gwtsub_refresh
 
     if [[ ${COMP_CWORD} -eq 1 ]]; then
-        COMPREPLY=( $(compgen -W "${_gwt_commands[*]} ${_gwt_remote_commands[*]}" -- ${cur}) )
+        COMPREPLY=( $(compgen -W "${_gwt_commands[*]} ${_gwt_remote_commands[*]} ${!_gwt_aliases[*]}" -- ${cur}) )
         return 0
     fi
     regex="\<${subcommand}\>"
-    if [[ -n $subcommand && ${_gwt_remote_commands[@]} =~ ${regex} ]]; then
+    if [[ -n $subcommand && ${_gwt_remote_commands[*]} =~ ${regex} ]]; then
         if [[ ${COMP_CWORD} -gt 2 ]]; then
             worktree="${COMP_WORDS[2]}"
             # swap words 1 & 2, to make command like find the last COMP_WORDS
@@ -354,7 +357,7 @@ _gwt_complete() {
             COMPREPLY=( $( compgen -W "${_gwt_trees[*]/$_gwt_cwt}" -- ${cur}) )
             return 0
             ;;
-        remove)
+        rm|remove)
             COMPREPLY=( $( compgen -W "${_gwt_trees[*]}" -- ${cur}) )
             return 0
             ;;
@@ -369,7 +372,7 @@ _gwt_complete() {
         pull)
             if [[ ${COMP_CWORD} -gt 2 ]]; then
                 worktree="${COMP_WORDS[2]}"
-                COMPREPLY=( $( builtin cd ${_gwt_bare}/${worktree}/${_gwt_subdir}; compgen -f -- ${cur} ) )
+                COMPREPLY=( $( builtin cd ${_gwt_bare}/${worktree}/${_gwt_subdir} || exit; compgen -f -- ${cur} ) )
             else
                 COMPREPLY=( $( compgen -W "${_gwt_trees[*]/$_gwt_cwt}" -- ${cur} ) )
             fi
@@ -388,19 +391,26 @@ _gwt_complete() {
 [[ -z $_gwt_no_wt_commands ]] && declare -garx _gwt_no_wt_commands=(clone)
 [[ -z $_gwt_remote_commands ]] && declare -garx _gwt_remote_commands=(find grep)
 [[ -z $_gwt_commands ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}" )
+[[ -z $_gwt_aliases ]] && declare -Agrx _gwt_aliases=([ls]="list" [rm]="remove" )
 _gwtsub_refresh 2>/dev/null
 
 gwt() {
-    local gwt_command="_gwtsub_${1}"
+    local gwt_command
     local regex="\<${1}\>"
-    local worktree
+    local worktree command
 
     [[ $# -eq 0 ]] && {
         echo "gwt: ERROR - no command specified" >&2
         return 128
     }
 
-    [[ ${_gwt_no_wt_commands[@]} =~ ${regex} ]] && {
+    [[ ${!_gwt_aliases[*]} =~ ${regex} ]] && {
+        set -- ${_gwt_aliases[$1]} "${@:2}"
+    }
+
+    gwt_command="_gwtsub_${1}"
+
+    [[ ${_gwt_no_wt_commands[*]} =~ ${regex} ]] && {
         shift
         ${gwt_command} "$@"
         return $?
@@ -408,12 +418,12 @@ gwt() {
 
     _gwtsub_refresh || return $?
 
-    [[ -z _gwt_bare ]] && {
+    [[ -z ${_gwt_bare} ]] && {
         echo "gwt: ERROR not in git worktree directory" >&2
         return 1
     }
 
-    [[ ${_gwt_remote_commands[@]} =~ ${regex} ]] && {
+    [[ ${_gwt_remote_commands[*]} =~ ${regex} ]] && {
         command=$1
         shift
         worktree=$1
