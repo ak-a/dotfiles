@@ -69,12 +69,13 @@ if &term =~ 'tmux'
     let &t_BD = "\<Esc>[?2004l"
     let &t_PS = "\<Esc>[200~"
     let &t_PE = "\<Esc>[201~"
-    
+
 endif
 
 
 " Remove trailing space for most file types
-autocmd FileType c,cpp,go,java,php,json,yaml,python autocmd BufWritePre <buffer> %s/\s\+$//e
+" no longer needed - using prettier
+" autocmd FileType c,cpp,go,java,php,json,yaml,python autocmd BufWritePre <buffer> %s/\s\+$//e
 
 if has('gui_running')
     source ~/.vim/cursor.vim
@@ -87,4 +88,3 @@ endif
     \ if line("'\"") >= 1 && line("'\"") <= line("$") |
     \   execute "normal! g`\"" |
     \ endif
-

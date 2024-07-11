@@ -120,13 +120,7 @@ let g:ale_linters      = {
     \ 'javascript': ['prettier', 'eslint'],
     \ 'sh': ['bashate', 'cspell', 'language_server', 'shell', 'shellcheck'],
     \ 'yaml': ['prettier', 'yamllint'],
-    \ 'yaml.gha': ['prettier', 'actionlint'],
-    \}
-" ale-actionlint
- au BufRead,BufNewFile */.github/*/*.y{,a}ml
-    \ let b:ale_linters = {
-    \   'yaml.gha': ['prettier', 'actionlint'],
-    \   'yaml': ['prettier', 'actionlint'],
+    \ 'yaml.gha': ['prettier', 'yamllint', 'actionlint'],
     \}
 let g:ale_fix_on_save = 1
 nmap <F8> <Plug>(ale_fix)
