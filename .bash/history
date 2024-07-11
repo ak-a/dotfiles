@@ -39,9 +39,9 @@ _slurp_other_shell_histories() {
         if [[ $(readlink /proc/${shell_history##*.}/exe) =~ bash ]]; then
             # if the shell is still running don't merge yet, this is so we
             # can write a merge file of shells that didn't exit cleanly (reboot maybe)
-            running_history+=($history_fullpath)
+            running_history+=("${history_fullpath}")
         else
-            gone_history+=($history_fullpath)
+            gone_history+=("${history_fullpath}")
         fi
     done < <(ls -rt1 $HISTDIR)
 
@@ -85,8 +85,7 @@ get_lock_on_file() {
 
     # try and get a lock 'mv' is atomic (at least on local fs)
     lockfile=${1}
-    tmpfile=$(mktemp -p ${1%/*})        # make tempfile in same directory
-    [[ $? -ne 0 ]] && return 1          # if this fails, then we can't do much
+    tmpfile=$(mktemp -p ${1%/*}) || return $?        # make tempfile in same directory 
 
     timeout=0                           # default timeout is 10
     until (( timeout++ == ${2:-10} )) \

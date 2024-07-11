@@ -68,17 +68,16 @@ _pendPath() { # Pre/Ap dir...
 PrependPath() { _pendPath Pre "$@"; }
 AppendPath() { _pendPath Ap "$@"; }
 
-_remove_var_dupes()        # <var> [<sep>] reads $var and keeps order, but removes trailing dupes, separated by <sep>, default ':'
-{
+_remove_var_dupes() {       # <var> [<sep>] reads $var and keeps order, but removes trailing dupes, separated by <sep>, default ':'
     local IFS
     local -a vararry strippedvar newvar
     local sep
     sep=${2:-:}         # default is colon
     IFS=${sep}
-    eval vararry=(\$$1)
+    eval "vararry=(\$$1)"
     for p in "${vararry[@]}"
     do
-        strippedvar=(${strippedvar[@]%%#$p})
+        strippedvar=("${strippedvar[@]%%#$p}")
         strippedvar+=("#$p")
     done
     unset IFS

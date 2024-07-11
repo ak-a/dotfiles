@@ -1,4 +1,4 @@
-#! bash
+#!/bin/bash
 #
 
 shopt -s cdspell checkwinsize cmdhist
@@ -47,7 +47,7 @@ function _cdh
         mapfile -t CDHIST < $CDHISTFILE
     fi
 
-    [[ ${CDHIST[0]} != ${PWD} && -n ${PWD} ]] && _cdins		    # insert $PWD into cd history
+    [[ ${CDHIST[0]} != "${PWD}" && -n ${PWD} ]] && _cdins		    # insert $PWD into cd history
 
     cdlen=${#CDHIST[*]}		# number of elements in history
 
@@ -97,9 +97,9 @@ function _cdh
 	++*)	rel="-e s/.//";;
 	+*) rel="";
 	esac
-	meta=`echo "$@" | sed -e 's/\+*//' -e 's/./\/&\*/g' $rel` \
+	meta=$(echo "$@" | sed -e 's/\+*//' -e 's/./\/&\*/g' $rel) \
 		2>/dev/null
-	expanded=`/bin/ls -d $meta`
+	expanded=$(/bin/ls -d $meta)
 	set -- $expanded
 	if [ $# = 1 ]
 	then
@@ -109,7 +109,7 @@ function _cdh
 	    while ((i <=$#))
 	    do
 		eval "thisone=\${$i}"
-		if [ -d "$thisone" ]
+		if [[ -d "${thisone}" ]]
 		then
 		    echo "$thisone? \c "
 		    read yesno
@@ -130,7 +130,7 @@ function _cdh
 
     _cdins		    # insert $PWD into cd history
 
-    [[ -n $CDHISTFILE ]] && printf '%s\n' ${CDHIST[@]} > ${CDHISTFILE}
+    [[ -n "$CDHISTFILE" ]] && printf '%s\n' "${CDHIST[@]}" > ${CDHISTFILE}
     return 0
 }
 
@@ -164,38 +164,13 @@ function _cdins			# insert $PWD into cd history
 
 function _cdto
 {
-    # Run ".cdexit GOING-TO-DIR", but only if we are currently under $HOME
-    # case "$PWD" in
-    # ${HOME}*)	if [ -f .cdexit ]; then . ./.cdexit "$1"; fi;;
-    # esac
-
-    WASPWD="$PWD"
-    [[ -f $1 ]] && 'cd' ${1%/*} || 'cd' "$1"
-
-    # Run ".cdenter CAME-FROM-DIR", but only if we are currently under $HOME
-    # case "$PWD" in
-    # ${HOME}*)	if [ -f .cdenter ]; then . ./.cdenter "$WASPWD"; fi;;
-    # esac
+    [[ -f $1 ]] && 'cd' ${1%/*} || 'cd' "$1" || return $?
 }
-
-#
-#   If the user hasn't defined set_prompt, define one for them
-#
-#if ! type set_prompt >/dev/null 2>&1; then
-#    function set_prompt
-#    {
-#	case "$TERM" in
-#	xterm*)	PS1='$ '; echo -e "\033]2;`uname -n`: $PWD\007\c";;
-#	*)  PS1="`uname -n`:\$PWD$ ";;
-#	esac
-#    }
-#fi
 
 #
 #   Make _cdh the new cd
 #
 alias cd=_cdh
-#set_prompt
 
 #
 #   If the user has a $HOME/.cdpreload, load some directories in CDHIST
@@ -207,38 +182,3 @@ if [ -f $HOME/.cdpreload ]; then
 	((i=i+1))
     done < $HOME/.cdpreload
 fi
-
-cdwt() {
-    local wt wts
-
-    typeset -a wts=($(git worktree list --porcelain \
-        | awk ' NR>1 && /worktree/ { print $2 } '))
-    for wt in ${wts[*]}
-    do
-        [[ $PWD == $wt/** ]] && {
-            [[ ! " ${wts[*]} " =~ " $1 " ]] || {
-                echo "$0: $1 not a git worktree" >&2
-                return 1
-            }
-            # remove last directory from current worktree
-            # use arg as new worktree directory
-            # use subdirectory within worktree so get a full path
-            cd ${wt%/*}/${1}/${PWD#$wt/}
-            return 0
-    }
-    done
-    echo "$0: not in git worktree" >&2
-    return 2
-}
-
-_cdwt_complete() {
-    local curr_arg wts
-
-    curr_arg=${COMP_WORDS[$COMP_CWORD]}
-    wts=$(git worktree list --porcelain \
-        | awk -F/ ' NR>1 && /worktree/ { print $NF } ')
-
-    COMPREPLY=( $(compgen -W "${wts}" -- $curr_arg ) );
-}
-
-complete -F _cdwt_complete cdwt
