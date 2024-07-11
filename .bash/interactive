@@ -3,15 +3,17 @@
 # this is only sourced if we are interactive, but will be sourced before other stuff
 # good place to put setup and environment stuff
 #
-[[ -f /etc/bash_completion && $_bash_completion_done != $$ ]] && {
+[[ -f /etc/bash_completion && $_bash_completion_done != "$$" ]] && {
     source /etc/bash_completion
     for c in /home/linuxbrew/.linuxbrew/etc/bash_completion.d/*
     do
+        # shellcheck disable=SC1090
         [[ -r $c ]] && source $c
     done
 }
 _bash_completion_done=$$
 
+# shellcheck disable=SC2190
 declare -A _completion_commands=( 
     argocd     "completion  bash"  
     gcloud     "completion  bash"  
@@ -24,11 +26,12 @@ declare -A _completion_commands=(
 
 for c in ${!_completion_commands[*]}
 do
-    complete | egrep -q -e "-F \w+ $c\$" && continue
+    complete | grep -E -q -e "-F \w+ $c\$" && continue
     _c_cache=~/.bash/completion-$c
     [[ -s $_c_cache ]] || {
         $c ${_completion_commands[$c]} 2>/dev/null > $_c_cache
     }
+    # shellcheck disable=SC1090
     source $_c_cache
     _completion_commands_done[$c]=1
 done
@@ -45,7 +48,8 @@ type -t terraform &>/dev/null && {
 }
 type -t terragrunt &>/dev/null && alias tg=terragrunt
 
-[[ -n $HOMEBREW_PREFIX && -r $HOMEBREW_PREFIX/etc/bash_completion ]] && \
+# shellcheck disable=SC1091
+[[ -n $HOMEBREW_PREFIX && -r $HOMEBREW_PREFIX/etc/bash_completion ]] &&
     source $HOMEBREW_PREFIX/etc/bash_completion
 
 # Environment setup

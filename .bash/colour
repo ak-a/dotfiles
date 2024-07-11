@@ -38,14 +38,14 @@ function quotedcolorES()
 unquotedcolour()
 {
     eval $DECLARE_XG $1=\"\$\(colourES $2 $3\)\"
-    _colours_cache+=($1)
+    _colours_cache+=("$1")
 }
 
 quotedcolour()
 {
     # shellcheck disable=SC1083
     eval $DECLARE_XG $1=\${$1-\"\$\(quotedcolorES $2 $3\)\"}
-    _colours_cache+=($1)
+    _colours_cache+=("$1")
 }
 
 generate_colours()
@@ -73,7 +73,7 @@ generate_colours()
 cache_colours() # output file
 {
     local v
-    for v in ${_colours_cache[@]}
+    for v in "${_colours_cache[@]}"
     do
 	typeset -p $v | {
             if [[ ${BASH_VERSINFO[0]} -ge 5 ]]; then
