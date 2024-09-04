@@ -11,6 +11,6 @@ syntax region bashScript start=/\%(^\%(\.\.\)\@!\z(\s*\).*\)\@<=run: |$/ skip=/^
 
 let b:current_syntax = ''
 unlet b:current_syntax
-syntax include @yamlGoTextTmpl syntax/gotexttmpl.vim
+"syntax include @yamlGoTextTmpl syntax/gotexttmpl.vim
 syntax region goTextTmpl start=/{{/ end=/}}/ contains=@gotplLiteral,gotplControl,gotplFunctions,gotplVariable,goTplIdentifier containedin=ALLBUT,goTextTmpl keepend
 hi def link goTextTmpl PreProc

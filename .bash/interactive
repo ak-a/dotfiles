@@ -70,6 +70,7 @@ alias grep='grep --exclude "*~" --exclude ".*sw?" --exclude ".*.un~" --color'   
 #alias ls='ls -h --color=tty'                 # classify files in colour
 alias mux=tmuxinator
 type -t jless &>/dev/null && alias yless="jless --yaml"
+alias prstate='gh pr list --search head:$(git branch --show-current) --state all --jq .[].state --json state'
 
 # shopt
 # #####

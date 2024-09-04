@@ -17,3 +17,5 @@ Session.vim
 .Session.vim
 .gitmessage
 **/.undodir/**
+.sha256sum
+manifest.yaml
