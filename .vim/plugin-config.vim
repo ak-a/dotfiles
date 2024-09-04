@@ -114,13 +114,13 @@ let g:ale_fixers      = {
     \ 'python': ['black'],
     \ 'sh': ['shfmt'],
     \ 'yaml': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
-    \ 'yaml.gha': ['prettier'],
+    \ 'yaml.gha': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
     \}
 let g:ale_linters      = {
     \ 'javascript': ['prettier', 'eslint'],
     \ 'sh': ['bashate', 'cspell', 'language_server', 'shell', 'shellcheck'],
-    \ 'yaml': ['prettier', 'yamllint'],
-    \ 'yaml.gha': ['prettier', 'yamllint', 'actionlint'],
+    \ 'yaml': ['prettier', 'yaml-language-server', 'yamllint'],
+    \ 'yaml.gha': ['prettier', 'yaml-language-server', 'yamllint', 'actionlint'],
     \}
 let g:ale_fix_on_save = 1
 nmap <F8> <Plug>(ale_fix)
