@@ -114,6 +114,7 @@ let g:ale_fixers      = {
     \ 'python': ['black'],
     \ 'sh': ['shfmt'],
     \ 'yaml': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
+    \ 'markdown': ['prettier'],
     \ 'yaml.gha': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
     \}
 let g:ale_linters      = {
