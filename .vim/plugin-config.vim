@@ -119,7 +119,7 @@ let g:ale_fixers      = {
     \}
 let g:ale_linters      = {
     \ 'javascript': ['prettier', 'eslint'],
-    \ 'sh': ['bashate', 'cspell', 'language_server', 'shell', 'shellcheck'],
+    \ 'sh': ['bashate', 'language_server', 'shell', 'shellcheck'],
     \ 'yaml': ['prettier', 'yaml-language-server', 'yamllint'],
     \ 'yaml.gha': ['prettier', 'yaml-language-server', 'yamllint', 'actionlint'],
     \}
