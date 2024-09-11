@@ -3,59 +3,58 @@
 # this is only sourced if we are interactive, but will be sourced before other stuff
 # good place to put setup and environment stuff
 #
-[[ -f /etc/bash_completion && $_bash_completion_done != "$$" ]] && {
+[[ -f /etc/bash_completion && ${_bash_completion_done} != "$$" ]] && {
     source /etc/bash_completion
-    for c in /home/linuxbrew/.linuxbrew/etc/bash_completion.d/*
-    do
+    for c in /home/linuxbrew/.linuxbrew/etc/bash_completion.d/*; do
         # shellcheck disable=SC1090
-        [[ -r $c ]] && source $c
+        [[ -r ${c} ]] && source ${c}
     done
 }
 _bash_completion_done=$$
 
 # shellcheck disable=SC2190
-declare -A _completion_commands=( 
-    argocd     "completion  bash"  
-    gcloud     "completion  bash"  
-    gh         "completion  -s     bash"
-    helm       "completion  bash"  
-    k9sectl    "completion  bash"  
-    kubectl    "completion  bash"  
-    kustomize  "completion  bash"  
+declare -A _completion_commands=(
+    argocd "completion bash"
+    gcloud "completion bash"
+    gh "completion -s bash"
+    helm "completion bash"
+    jira "completion bash"
+    k9sectl "completion bash"
+    kubectl "completion bash"
+    kustomize "completion bash"
 )
 
-for c in ${!_completion_commands[*]}
-do
-    complete | grep -E -q -e "-F \w+ $c\$" && continue
-    _c_cache=~/.bash/completion-$c
-    [[ -s $_c_cache ]] || {
-        $c ${_completion_commands[$c]} 2>/dev/null > $_c_cache
+for c in ${!_completion_commands[*]}; do
+    complete | grep -E -q -e "-F \w+ ${c}\$" && continue
+    _c_cache=~/.bash/completion-${c}
+    [[ -s ${_c_cache} ]] || {
+        ${c} ${_completion_commands[${c}]} 2> /dev/null > ${_c_cache}
     }
     # shellcheck disable=SC1090
-    source $_c_cache
-    _completion_commands_done[$c]=1
+    source ${_c_cache}
+    _completion_commands_done[${c}]=1
 done
 
-type -t kubectl &>/dev/null && {
+type -t kubectl &> /dev/null && {
     alias k=kubectl
     complete -o default -F __start_kubectl k
 }
-type -t kubectx &>/dev/null && alias kx=kubectx
-type -t terraform &>/dev/null && {
+type -t kubectx &> /dev/null && alias kx=kubectx
+type -t terraform &> /dev/null && {
     complete -C $(type -p terraform) terraform
     alias tf=terraform
     complete -C $(type -p terraform) tf
 }
-type -t terragrunt &>/dev/null && alias tg=terragrunt
+type -t terragrunt &> /dev/null && alias tg=terragrunt
 
 # shellcheck disable=SC1091
-[[ -n $HOMEBREW_PREFIX && -r $HOMEBREW_PREFIX/etc/bash_completion ]] &&
-    source $HOMEBREW_PREFIX/etc/bash_completion
+[[ -n ${HOMEBREW_PREFIX} && -r ${HOMEBREW_PREFIX}/etc/bash_completion ]] \
+    && source ${HOMEBREW_PREFIX}/etc/bash_completion
 
 # Environment setup
 # #################
 # I rule over all the other PATH bits
-PrependPath $HOME/bin
+PrependPath ${HOME}/bin
 
 # to avoid cm issues on centOS 5
 export EDITOR=vim
@@ -66,40 +65,45 @@ export FIGNORE="~:.sw?:.un~"
 # Aliases
 # #######
 
-alias grep='grep --exclude "*~" --exclude ".*sw?" --exclude ".*.un~" --color'                     # show differences in colour
 #alias ls='ls -h --color=tty'                 # classify files in colour
 alias mux=tmuxinator
-type -t jless &>/dev/null && alias yless="jless --yaml"
+type -t jless &> /dev/null && alias yless="jless --yaml"
 alias prstate='gh pr list --search head:$(git branch --show-current) --state all --jq .[].state --json state'
 
 # shopt
 # #####
 
-shopt -s autocd        # can type bin<CR> to cd to bin
-shopt -s cdspell       # autocorrect cd spellings
-shopt -s execfail      # don't exit if exec fails
+shopt -s autocd   # can type bin<CR> to cd to bin
+shopt -s cdspell  # autocorrect cd spellings
+shopt -s execfail # don't exit if exec fails
 
 # Functions
 # #########
 
 function settitle() { echo -n "^[]2;$*^G^[]1;$*^G"; }
+# shellcheck disable=SC2032
+function grep() {
+    # show differences in colour
+    command grep --exclude '*~' --exclude '.*sw?' --exclude '.*.un~' --color "${@}"
+}
 
 export SHELLCHECK_OPTS="-e SC2086 -e SC2046"
 
 gofind() { # [dir] [test]
     local testarg
     testarg=true
-    [[ -z $2 ]] && testarg='! -name "*_test.go"'
+    [[ -z ${2} ]] && testarg=(! -name "*_test.go")
 
-    find ${1:-.} \( -name "*.go" -a $testarg \) -print0
+    find ${1:-.} \( -name "*.go" -a "${testarg[@]}" \) -print0
 }
 
 gogrep() {
-    gofind $2 $3 | xargs -0 grep $4 -e "$1"
+    # shellcheck disable=SC2033
+    gofind ${2} ${3} | xargs -0 grep ${4} -e "${1}"
 }
 
 ygrep() { # grep in yaml
-    grep -r ${2:.} --include "*.yaml" $3 -e "$1" 
+    grep -r ${2:.} --include "*.yaml" ${3} -e "${1}"
 }
 
 function urldecode() {
@@ -109,11 +113,11 @@ function urldecode() {
 urlencode() {
     # urlencode <string>
     local length="${#1}"
-    for (( i = 0; i < length; i++ )); do
+    for ((i = 0; i < length; i++)); do
         local c="${1:i:1}"
-        case $c in
-            [a-zA-Z0-9.~_-]) printf "$c" ;;
-            *) printf '%%%02X' "'$c"
+        case ${c} in
+            [a-zA-Z0-9.~_-]) printf "%s" "${c}" ;;
+            *) printf '%%%02X' "'${c}" ;;
         esac
     done
 }
@@ -129,7 +133,13 @@ trap -- bash_trap_exit EXIT
 kb() {
     local kbdir
     [[ -f ${1} && ${1} =~ .*/kustomization.yaml ]] && kbdir=${1%/*} || kbdir=${1}
-    [[ -d $kbdir ]] || { echo "kb: $kbdir not a directory" >&2; return 1; }
-    [[ -r $kbdir/kustomization.yaml ]] || { echo "kb: $kbdir not a kustomize directory" >&2; return 1; }
-    kustomize build --enable-helm --load-restrictor LoadRestrictionsNone $kbdir
+    [[ -d ${kbdir} ]] || {
+        echo "kb: ${kbdir} not a directory" >&2
+        return 1
+    }
+    [[ -r ${kbdir}/kustomization.yaml ]] || {
+        echo "kb: ${kbdir} not a kustomize directory" >&2
+        return 1
+    }
+    kustomize build --enable-helm --load-restrictor LoadRestrictionsNone ${kbdir}
 }
