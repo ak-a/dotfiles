@@ -24,16 +24,31 @@ declare -A _completion_commands=(
     kustomize "completion bash"
 )
 
-for c in ${!_completion_commands[*]}; do
-    complete | grep -E -q -e "-F \w+ ${c}\$" && continue
-    _c_cache=~/.bash/completion-${c}
-    [[ -s ${_c_cache} ]] || {
-        ${c} ${_completion_commands[${c}]} 2> /dev/null > ${_c_cache}
-    }
-    # shellcheck disable=SC1090
-    source ${_c_cache}
-    _completion_commands_done[${c}]=1
-done
+_interactive_source_completions_by_command() {
+    local _seven_days_ago _command _c_cache
+    _seven_days_ago=$(mktemp)
+    touch -d "-7 days" ${_seven_days_ago}
+    for _command in ${!_completion_commands[*]}; do
+        # if we can't find the command, we can skip
+        type -t ${_command} &> /dev/null || continue
+
+        # do we have the completion already done?
+        complete | command grep -E -q -e "-F \w+ ${_command}\$" && continue
+
+        # so now we check the cache of the completion, generate if needed
+        # and slurp it in
+        _c_cache=~/.bash/completion-${_command}
+        [[ -s ${_c_cache} && ${_c_cache} -nt ${_seven_days_ago} ]] || {
+            ${_command} ${_completion_commands[${_command}]} 2> /dev/null > ${_c_cache}
+        }
+        # shellcheck disable=SC1090
+        source ${_c_cache}
+        _completion_commands_done[${_command}]=1
+    done
+    rm -f ${_seven_days_ago}
+}
+
+_interactive_source_completions_by_command
 
 type -t kubectl &> /dev/null && {
     alias k=kubectl
