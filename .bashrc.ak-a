@@ -2,7 +2,7 @@
 
 # shellcheck disable=SC1090
 
-export PATH=~/bin:$PATH
+export PATH=~/bin:${PATH}
 export CDHISTFILE=~/.cdhistory
 
 # only pass beyond if we are interactive shell
@@ -10,7 +10,7 @@ export CDHISTFILE=~/.cdhistory
 ## INTERACTIVE SHELLS ARE US!
 #############################
 
-[[ -r $HOME/.bashrc.debug ]] && {
+[[ -r ${HOME}/.bashrc.debug ]] && {
     exec 5>> /tmp/bashtrace.$$.txt
     BASH_XTRACEFD=5
     set -x
@@ -61,9 +61,8 @@ function _bashrc_cleanup() {
 function _bashrc_check_source_ood() {
     local _bashrc
     _bashrc_ood=()
-    for _bashrc in "${_bashrc_sources[@]}"
-    do
-        [[ $_bashrc -nt ${BASHRC_LAST_SOURCE} ]] && _bashrc_ood+=( "${_bashrc}" )
+    for _bashrc in "${_bashrc_sources[@]}"; do
+        [[ ${_bashrc} -nt ${BASHRC_LAST_SOURCE} ]] && _bashrc_ood+=("${_bashrc}")
     done
     # shellcheck disable=SC2034
     _PROMPT_OOD_BASHRCS="${_bashrc_ood[*]}"
@@ -72,9 +71,8 @@ function _bashrc_check_source_ood() {
 alias reload='set -o functrace; _reload_ood_bashrc; set +o functrace'
 function _reload_ood_bashrc() {
     local _bashrc
-    for _bashrc in "${_bashrc_ood[@]}"
-    do
-        source "$_bashrc"
+    for _bashrc in "${_bashrc_ood[@]}"; do
+        source "${_bashrc}"
     done
     touch ${BASHRC_LAST_SOURCE}
 }
@@ -83,8 +81,8 @@ function reloadall() {
     source ${_bashrc_sources[0]}
 }
 
-function _bashrc_source() {  # file
-    # this will source a file, if it exists and add the mtime of the file 
+function _bashrc_source() { # file
+    # this will source a file, if it exists and add the mtime of the file
     # to the list of files sourced, then we can monitor if we are out
     # of date and warn the shell may need to be reloaded or just source the
     # file that has been updated
@@ -93,21 +91,21 @@ function _bashrc_source() {  # file
     _bashrc_file=${_bashrc##*/}
 
     # shellcheck disable=SC1090
-    [[ -r $_bashrc ]] && {
-        _bashrc_sources+=( "$_bashrc" )
+    [[ -r ${_bashrc} ]] && {
+        _bashrc_sources+=("${_bashrc}")
         # if we want to debug and individual bashrc
-	[[ " ${_debug_bashrc[*]} " =~ \ ${_bashrc_file}\  ]] && {
-	    exec 5>> /tmp/bashtrace.$$.txt
-	    BASH_XTRACEFD=5
-	    set -x
-	}
-	_bashrc_ms=$(date +%s%3N)
-        source "$_bashrc"
-        _bashrc_ms=$(( $(date +%s%3N)-_bashrc_ms ))
+        [[ " ${_debug_bashrc[*]} " =~ \ ${_bashrc_file}\  ]] && {
+            exec 5>> /tmp/bashtrace.$$.txt
+            BASH_XTRACEFD=5
+            set -x
+        }
+        _bashrc_ms=$(date +%s%3N)
+        source "${_bashrc}"
+        _bashrc_ms=$(($(date +%s%3N) - _bashrc_ms))
         ## check if we are debugging _bashrc all before switching off set -x
-	[[ " ${_debug_bashrc[*]} " =~ \ ${_bashrc_file}\  && ! -r $HOME/.bashrc.debug ]] && set +x
-	_bashrc_source_ms[${_bashrc}]=$_bashrc_ms
-	[[ -n $BASH_XTRACEFD ]] && echo "TIME: source $_bashrc: ${_bashrc_ms}ms" >&5
+        [[ " ${_debug_bashrc[*]} " =~ \ ${_bashrc_file}\  && ! -r ${HOME}/.bashrc.debug ]] && set +x
+        _bashrc_source_ms[${_bashrc}]=${_bashrc_ms}
+        [[ -n ${BASH_XTRACEFD} ]] && echo "TIME: source ${_bashrc}: ${_bashrc_ms}ms" >&5
         touch ${BASHRC_LAST_SOURCE}
     }
 }
@@ -116,9 +114,9 @@ function trapadd() { #command #SIGSPEC
 
     _current_trap=$(trap -p $2)
     # this is either empty or trap -- blahblah SIGNAL
-    if [[ -z $_current_trap ]]; then
+    if [[ -z ${_current_trap} ]]; then
         trap -- $1 $2
-    elif [[ $_current_trap =~ $1 ]]; then
+    elif [[ ${_current_trap} =~ $1 ]]; then
         :
     else
         eval ${_current_trap/\' $2/;$1\' $2}
@@ -137,24 +135,23 @@ fi
 
 BASHRCDIR=${PIDRUNDIR}/${UID}/bashrc
 trap "_bashrc_cleanup" EXIT
-mkdir -p ${BASHRCDIR}
+mkdir -p "${BASHRCDIR}"
 BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
 #trapadd "_bashrc_check_source_ood" DEBUG
 
-_bashrcs=( debug.bash env_manip misc_functions interactive gwt tmux colour prompt cd history keyring fb )
-for i in "${_bashrcs[@]}"
-do
-    _bashrc_source $HOME/.bash/$i
+_bashrcs=(debug.bash env_manip misc_functions interactive bash-cache.sh gwt tmux colour prompt cd history keyring fb)
+for i in "${_bashrcs[@]}"; do
+    _bashrc_source ${HOME}/.bash/${i}
 done
 export _bashrc_source_ms
 unset _bashrcs
 
 # if we got stuff setup then clean our PATH
-if declare -F _remove_path_dupes >/dev/null; then
+if declare -F _remove_path_dupes > /dev/null; then
     _remove_path_dupes
 else
     # olds way using awk
-    PATH="$(echo -n "$PATH" | /bin/awk -vRS=: -vORS=: '!a[$0]++')"
+    PATH="$(echo -n "${PATH}" | /bin/awk -vRS=: -vORS=: '!a[$0]++')"
     export PATH
 fi
 
