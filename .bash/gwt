@@ -57,8 +57,7 @@ _gwt_get_default_branch() {
 # this populates env vars used by the various commands
 # needs to do the minimum required so it is quick
 # shellcheck disable=SC2154
-_gwtsub_help[refresh]='Does a refresh of worktree trees etc.
-'
+_gwt_help[refresh]='refresh of worktree trees etc.'
 _gwtsub_refresh() {
     set -o pipefail
 
@@ -103,8 +102,7 @@ _gwt_match() {
     return 1
 }
 
-_gwt_help[cd]='Usage: gwt cd <worktree>
-'
+_gwt_help[cd]='change to same path in other <worktree>'
 _gwtsub_cd() {
     local wt
 
@@ -157,28 +155,21 @@ _gwt_dosub_command() { # path ... dest-worktree
     done
 }
 
-_gwt_help[cp]='Usage: gwt cp <file> ... <worktree>
-copy files in current worktree with same file location in <worktree>
-assumes that destination directories exist or copy will fail
-'
+_gwt_help[cp]='copy paths to destination <worktree>'
 _gwtsub_cp() { # path ... dest-worktree
 
     _gwt_dosub_command cp "$@"
     return $?
 }
 
-_gwt_help[diff]='Usage: gwt diff <file> ... <worktree>
-diff files in current worktree with the file in <worktree>
-'
+_gwt_help[diff]='diff <paths> with those in <worktree>'
 _gwtsub_diff() { # path ... dest-worktree
 
     _gwt_dosub_command diff "$@"
     return $?
 }
 
-_gwt_help[pull]='Usage: gwt pull <worktree> <file> ...
-pulls file(s) from other <worktree> to current worktree
-'
+_gwt_help[pull]='pulls from <worktree> to <paths>'
 _gwtsub_pull() { # remote-worktree path ...
 
     return $?
@@ -191,15 +182,60 @@ function join_by {
 }
 
 readarray -t _git_emojis < ~/.git-emoji
-readarray -t _gwt_commit < ~/.conventional-commit
+readarray -t _gwt_commit < <(sort ~/.conventional-commit)
 _gwt_commit_type=(${_gwt_commit[@]%% *})
 _gwt_commit_type_re="($(join_by '|' "${_gwt_commit_type[@]}"))"
 
-_gwt_help[newbranch]='Usage: gwt newbranch <worktree>
-Creates a new git worktree <worktree> with branch named the same and
-git upstream branch name setup.
-'
-function _gwtsub_newbranch() {
+_gwt_jira_description2branch_directory() { # cc_type jira description...
+    # returns something suitable for a branch and directory
+    shopt -s extglob
+    local cc_type="$1"
+    shift
+    local jira="$1"
+    shift
+    # shellcheck disable=SC2124
+    local description="$@"
+    local branch="${description// /-}"
+    branch="${branch//+([^[:alnum:]-])/.}"
+    branch="${branch//--/-}"
+    branch="${branch//../.}"
+    branch="${branch//.-/.}"
+    branch="${branch//-./-}"
+    branch="${USER}/${cc_type}-${jira}-${branch}"
+    local directory="${cc_type}-${jira}-${description//+([^[:alnum:]])/-}"
+
+    echo "${branch::63}" "${directory::63}"
+}
+
+_gwt_help[newbranch]='creates a new git worktree using <cc> and <jira>'
+function _gwtsub_newbranch() { # cc_type JIRA
+    local cc_type=${1?Missing conventional commit type}
+    local jira=${2?Missing JIRA ticket}
+    local branch directory
+    read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issues | grep "^${jira}	" | cut -d'	' -f2)")
+
+    #typeset -p cc_type jira branch directory
+    #return 0
+
+    (
+        builtin cd ${_gwt_bare}
+        git fetch \
+            && pushd ${_gwt_default_branch} \
+            && git pull \
+            && popd \
+            && git worktree add -b ${branch} ${directory} || return $?
+    ) || return $?
+    cd ${_gwt_bare}/${directory} || return $?
+
+    # now we setup the worktree branch
+    # install pre-commit if repo has config
+    [[ -r .pre-commit-config.yaml ]] && type -t pre-commit > /dev/null && pre-commit install
+    # set the upstream for future push
+    git push --set-upstream origin ${branch}
+
+    _git_set_commit_message ${cc_type} ${jira}
+}
+function _gwtsub_oldnewbranch() {
     local new_wt=${1?Missing Worktree/branch}
 
     local jira_ticket cc_type
@@ -237,8 +273,7 @@ GITMESSAGE
 }
 
 # shellcheck disable=SC2154
-_gwtsub_help[remove]='Removes a worktree, if not clean will show details
-'
+_gwt_help[remove]='removes a worktree, if not clean will show details'
 function _gwtsub_remove() { # default is _gwt_cwt
     pushd ${_gwt_bare} || return $?
     local wt=${1:-${_gwt_cwt?No worktree specified}}
@@ -251,8 +286,7 @@ function _gwtsub_remove() { # default is _gwt_cwt
 }
 
 # shellcheck disable=SC2154
-_gwtsub_help[fremove]='Removes a worktree with force
-'
+_gwt_help[fremove]='removes a worktree with force'
 function _gwtsub_fremove() { # default is _gwt_cwt
     pushd ${_gwt_bare} || return $?
     local wt=${1:-${_gwt_cwt}}
@@ -262,8 +296,7 @@ function _gwtsub_fremove() { # default is _gwt_cwt
 }
 
 # shellcheck disable=SC2154
-_gwtsub_help[list]='List worktrees
-'
+_gwt_help[list]='list worktrees'
 function _gwtsub_list() {
     _gwt_refresh_trees
 
@@ -271,8 +304,7 @@ function _gwtsub_list() {
 }
 
 # shellcheck disable=SC2154
-_gwtsub_help[clone]='Does clone and setup of a new branch
-'
+_gwt_help[clone]='clone and setup of a repository with worktree'
 function _gwtsub_clone() {
     local dest=${1##*/}
 
@@ -325,9 +357,13 @@ REMOTE_COMMANDS
         _gwtsub_help
         return 2
     }
-    echo "${_gwt_help[$1]}"
+    printf "Usage: gwt $1\n%s" ${_gwt_help[$1]}
     return 0
 }
+
+_gwt_jira_issues() {
+    jira issue list --assignee anking --status '~Done' --status '~Trash' --plain --columns KEY,SUMMARY --no-headers --order-by KEY --reverse
+} && bc::cache _gwt_jira_issues 1m 10s
 
 _gwt_complete() {
     local cur subcommand worktree regex
@@ -340,6 +376,13 @@ _gwt_complete() {
     _gwtsub_refresh
 
     if [[ ${COMP_CWORD} -eq 1 ]]; then
+        type -t __helm_handle_standard_completion_case > /dev/null && {
+            # shellcheck disable=SC2034
+            completions=("${_gwt_complete_help[@]}")
+            __helm_handle_standard_completion_case
+            return
+        }
+
         COMPREPLY=($(compgen -W "${_gwt_commands[*]} ${_gwt_remote_commands[*]} ${!_gwt_aliases[*]}" -- ${cur}))
         return 0
     fi
@@ -389,12 +432,39 @@ _gwt_complete() {
             return 0
             ;;
         nb | newbranch)
-            branches=($(git for-each-ref --format='%(refname:short)' refs/heads/))
-            COMPREPLY=($(compgen -W "${branches[*]/${_gwt_cwt}/} ${_gwt_commit_type[*]}" -- ${cur}))
+            case ${COMP_CWORD} in
+                2)
+                    COMPREPLY=($(compgen -W "${_gwt_commit_type[*]}" -- ${cur}))
+                    return 0
+                    ;;
+                3)
+                    type -t __helm_handle_standard_completion_case > /dev/null && {
+                        # shellcheck disable=SC2034
+                        readarray -t completions < <(_gwt_jira_issues)
+                        __helm_handle_standard_completion_case
+                        return
+                    }
+                    COMPREPLY=($(compgen -W "$(_gwt_jira_issues | cut -d'	' -f1)" -- ${cur}))
+                    set +x
+                    return 0
+                    ;;
+                *)
+                    return 1
+                    ;;
+            esac
             return 0
             ;;
     esac
     return 1
+}
+
+_gwt_build_complete_help() {
+    local c
+
+    _gwt_complete_help=()
+    for c in "${_gwt_commands[@]}" "${_gwt_no_wt_commands[@]}" "${_gwt_remote_commands[@]}"; do
+        _gwt_complete_help+=("${c}	${_gwt_help[${c}]}")
+    done
 }
 
 #DONT MOVE THIS UP THE FILE
@@ -402,8 +472,10 @@ _gwt_complete() {
 [[ -z ${_gwt_no_wt_commands} ]] && declare -garx _gwt_no_wt_commands=(clone)
 [[ -z ${_gwt_remote_commands} ]] && declare -garx _gwt_remote_commands=(find grep)
 [[ -z ${_gwt_commands} ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}")
-[[ -z ${_gwt_aliases} ]] && declare -Agrx _gwt_aliases=([ls]="list" [rm]="remove")
+[[ ${#_gwt_aliases[*]} -gt 0 ]] || declare -Agrx _gwt_aliases=([ls]="list" [rm]="remove")
 _gwtsub_refresh 2> /dev/null
+declare -gax _gwt_complete_help
+_gwt_build_complete_help
 
 gwt() {
     local gwt_command

@@ -158,3 +158,5 @@ kb() {
     }
     kustomize build --enable-helm --load-restrictor LoadRestrictionsNone ${kbdir}
 }
+
+[[ -r ~/.ssh/jira-token.sh ]] && source ~/.ssh/jira-token.sh
