@@ -139,7 +139,7 @@ mkdir -p "${BASHRCDIR}"
 BASHRC_LAST_SOURCE=${BASHRCDIR}/shell.$$.last_source
 #trapadd "_bashrc_check_source_ood" DEBUG
 
-_bashrcs=(debug.bash env_manip misc_functions interactive bash-cache.sh gwt tmux colour prompt cd history keyring fb)
+_bashrcs=(debug.bash env_manip misc_functions interactive bash-cache.sh tmux colour prompt cd history keyring gwt fb drw)
 for i in "${_bashrcs[@]}"; do
     _bashrc_source ${HOME}/.bash/${i}
 done

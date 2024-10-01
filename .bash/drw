@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Stuff for DRW
+
+get_artifactory_release_token() {
+    (
+        {
+            vault token renew -namespace=ti || vault login -method=ldap -namespace=ti username=$(USER) || return $?
+        } >&2
+        vault kv get -namespace=ti -mount=tools-kv -field=write artifactory/up-pi/tokens/release
+    )
+}
+
+helm_publish_dev() {
+    local CHART VERSION PACKAGE TOKEN
+
+    CHART=${1?No chart specified}
+    VERSION=$(yq -r .version < ${CHART}/Chart.yaml)
+    PACKAGE=${CHART}-${VERSION}-dev.tgz
+
+    helm lint --strict ${CHART} \
+        && helm package ${CHART} --version ${VERSION}-dev \
+        && TOKEN=$(get_artifactory_release_token) \
+        && curl -H "Authorization: Bearer ${TOKEN}" --upload-file "${PACKAGE}" https://artifacts.drwholdings.com/artifactory/up-helm-local/
+}
