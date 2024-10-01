@@ -363,7 +363,7 @@ REMOTE_COMMANDS
 
 _gwt_jira_issues() {
     jira issue list --assignee anking --status '~Done' --status '~Trash' --plain --columns KEY,SUMMARY --no-headers --order-by KEY --reverse
-} && bc::cache _gwt_jira_issues 1m 10s
+} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 1m 10s
 
 _gwt_complete() {
     local cur subcommand worktree regex
