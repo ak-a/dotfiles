@@ -212,7 +212,7 @@ function _gwtsub_newbranch() { # cc_type JIRA
     local cc_type=${1?Missing conventional commit type}
     local jira=${2?Missing JIRA ticket}
     local branch directory
-    read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issues | grep "^${jira}	" | cut -d'	' -f2)")
+    read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issue_description ${jira})")
 
     #typeset -p cc_type jira branch directory
     #return 0
@@ -364,6 +364,9 @@ REMOTE_COMMANDS
 
 _gwt_jira_issues() {
     jira issue list --assignee anking --status '~Done' --status '~Trash' --plain --columns KEY,SUMMARY --no-headers --order-by KEY --reverse
+} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 1m 10s
+_gwt_jira_issue_description() {
+    jira issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2
 } && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 1m 10s
 
 _gwt_complete() {
