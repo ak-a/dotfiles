@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cd $HOME
+cd ${HOME} || exit
 ln -sf dotfile/{.bash,.bashrc.ak-a,.gitignore,.inputrc,.tmux,.vim,.vimrc} .
-cd $HOME/dotfiles/.tmux/plugins/tpm
+cd ${HOME}/dotfiles/.tmux/plugins/tpm || exit
 git submodule update
-$HOME/.tmux/plugins/tpm/bin/install_plugins
+${HOME}/.tmux/plugins/tpm/bin/install_plugins
 vim +NeoBundleInstall +qall
