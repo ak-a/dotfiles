@@ -281,7 +281,8 @@ function _gwtsub_remove() { # default is _gwt_cwt
         cd ${_gwt_bare}/${wt} || return $?
         git status
     fi
-    popd || popd -n
+    # shellcheck disable=SC2164
+    popd 2> /dev/null || { popd -n && cd ${_gwt_default_branch}; }
     return $?
 }
 
