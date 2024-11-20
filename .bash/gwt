@@ -218,9 +218,9 @@ function _gwtsub_newbranch() { # cc_type JIRA
     #return 0
 
     (
-        builtin cd ${_gwt_bare}
+        builtin cd ${_gwt_bare?}
         git fetch \
-            && pushd ${_gwt_default_branch} \
+            && pushd ${_gwt_default_branch?} \
             && git pull \
             && popd \
             && git worktree add -b ${branch} ${directory} || return $?
@@ -367,7 +367,7 @@ _gwt_jira_issues() {
 } && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 1m 10s
 _gwt_jira_issue_description() {
     jira issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2
-} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 1m 10s
+} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issue_description 1m 10s
 
 _gwt_complete() {
     local cur subcommand worktree regex
