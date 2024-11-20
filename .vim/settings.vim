@@ -27,6 +27,7 @@ set showcmd
 set showmatch
 set si
 set signcolumn=yes
+set spellfile=~/.vim/spell/en.utf-8.add
 set sr
 set sts=4
 set tags=./tags,../../tags,~/tags,tags
