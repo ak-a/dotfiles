@@ -72,6 +72,7 @@ alias reload='set -o functrace; _reload_ood_bashrc; set +o functrace'
 function _reload_ood_bashrc() {
     local _bashrc
     for _bashrc in "${_bashrc_ood[@]}"; do
+        echo "+ source ${_bashrc}" >&2
         source "${_bashrc}"
     done
     touch ${BASHRC_LAST_SOURCE}
