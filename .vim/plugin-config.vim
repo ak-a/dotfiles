@@ -31,6 +31,12 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isT
 
 " settings
 let g:NERDTreeShowHidden = 1
+let g:NERDTreeAutoDeleteBuffer = 1
+let g:NERDTreeNaturalSort = 1
+let g:NERDTreeSortHiddenFirst = 1
+let g:NERDTreeHighlightCursorline = 1
+let g:NERDTreeRespectWildIgnore = 1
+let g:NERDTreeWinPos = 'right'
 let g:NERDTreeMinimalUI = 1
 let g:NERDTreeIgnore  = ['^\.DS_Store$', '^tags$', '\.idea$[[dir]]', '\.sass-cache$']
 " git stuff to ignore
