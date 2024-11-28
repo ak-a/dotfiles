@@ -8,8 +8,10 @@
 _gwt_bare=
 _gwt_default_branch=
 _gwt_update_epoch=0
-typeset -a _gwt_trees
-typeset -A _gwt_help
+declare -a _gwt_trees
+declare -A _gwt_help
+[[ -z $_gwt_ghes ]] && declare -r _gwt_ghes=git.drwholdings.com
+[[ -z $_gwt_default_org ]] && declare -r _gwt_default_org=up-platform-infrastructure
 
 #
 _gwt_refresh_trees() {
@@ -307,7 +309,22 @@ function _gwtsub_list() {
 # shellcheck disable=SC2154
 _gwt_help[clone]='clone and setup of a repository with worktree'
 function _gwtsub_clone() {
-    local dest=${1##*/}
+    local dest
+
+    # change dest based on if this is our default GHES and possible default org
+    [[ $1 =~ https://([^/]+)/([^/]+)/([^/]+)(.git)?$ ]] || {
+        echo "gwt: unexpect clone parameter '$1', expecting https://host/org/repo" >&2
+        return 1
+    }
+    if [[ ${BASH_REMATCH[1]} == "${_gwt_ghes}" ]]; then
+        if [[ ${BASH_REMATCH[2]} == "${_gwt_default_org}" ]]; then
+            dest=${BASH_REMATCH[3]}
+        else
+            dest=${BASH_REMATCH[2]}/${BASH_REMATCH[3]}
+        fi
+    else
+        dest=${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}
+    fi
 
     git clone --bare $1 ${dest} || return $?
     command cd ${dest} || return $?
