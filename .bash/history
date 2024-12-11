@@ -15,7 +15,7 @@ shopt -s histreedit
 shopt -s histverify
 
 # see help history for these settings, or man bash
-HISTCONTROL=ignoredups:ignorespace:erasedups
+export HISTCONTROL=ignoredups:ignorespace:erasedups
 HISTFILE=$HISTDIR/${HOSTNAME:-$(hostname -s)}.$(tty | cut -d/ -f4).$$
 HISTFILESIZE=${HISTMAXSIZE}        # keep a 10m of merged history
 HISTSIZE=${HISTMAXSIZE}            # keep all the history whilst we merge things
