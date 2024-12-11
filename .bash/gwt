@@ -10,8 +10,8 @@ _gwt_default_branch=
 _gwt_update_epoch=0
 declare -a _gwt_trees
 declare -A _gwt_help
-[[ -z $_gwt_ghes ]] && declare -r _gwt_ghes=git.drwholdings.com
-[[ -z $_gwt_default_org ]] && declare -r _gwt_default_org=up-platform-infrastructure
+[[ -z ${_gwt_ghes} ]] && declare -xr _gwt_ghes=git.drwholdings.com
+[[ -z ${_gwt_default_org} ]] && declare -xr _gwt_default_org=up-platform-infrastructure
 
 #
 _gwt_refresh_trees() {
@@ -326,7 +326,8 @@ function _gwtsub_clone() {
         dest=${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}
     fi
 
-    git clone --bare $1 ${dest} || return $?
+    echo git clone $1 ${dest} >&2
+    git clone --quiet --progress --bare $1 ${dest} || return $?
     command cd ${dest} || return $?
 
     _gwt_get_default_branch
