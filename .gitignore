@@ -12,6 +12,7 @@ tags
 .vim/allbundles/YouCompleteMe/python/ycm/tests/testdata
 .vim/biggrep.vim
 .vim/bundle/vim-tmux
+.bash/drw
 .bash/completion-*
 Session.vim
 .Session.vim
