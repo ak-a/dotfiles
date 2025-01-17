@@ -160,3 +160,6 @@ kb() {
 }
 
 [[ -r ~/.ssh/jira-token.sh ]] && source ~/.ssh/jira-token.sh
+
+# Ghostty
+[[ -r ${GHOSTTY_RESOURCES_DIR}/shell-integration/bash/ghostty.bash ]] && source ${GHOSTTY_RESOURCES_DIR}/shell-integration/bash/ghostty.bash
