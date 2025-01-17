@@ -130,7 +130,7 @@ let g:ale_linters      = {
     \ 'yaml.gha': ['prettier', 'yaml-language-server', 'yamllint', 'actionlint'],
     \}
 let g:ale_fix_on_save = 1
-nmap <F8> <Plug>(ale_fix)
+nmap <F7> <Plug>(ale_fix)
 let g:airline#extensions#ale#enabled = 1
 
 "VC stuff....
@@ -180,6 +180,26 @@ nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
 autocmd FileType python,c,cpp,go TagbarOpen
+nmap <silent> <F8> :TagbarToggle<CR>
+let g:tagbar_ctags_bin = '/usr/bin/ctags'
+let g:tagbar_type_yaml = {
+    \ 'ctagstype' : 'yaml',
+    \ 'kinds' : [
+        \ 'a:anchors',
+        \ 's:section',
+        \ 'e:entry'
+    \ ],
+  \ 'sro' : '.',
+    \ 'scope2kind': {
+      \ 'section': 's',
+      \ 'entry': 'e'
+    \ },
+    \ 'kind2scope': {
+      \ 's': 'section',
+      \ 'e': 'entry'
+    \ },
+    \ 'sort' : 0
+    \ }
 
 "Obsession
 set statusline+=" %{ObsessionStatus()"}

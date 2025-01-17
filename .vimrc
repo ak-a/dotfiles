@@ -4,6 +4,7 @@ set nocompatible
 source ~/.vim/plugin-config.vim
 " first to load all the plugins
 source ~/.vim/neobundle.vim
+source ~/.vim/plugin-config.vim
 " now the rest
 source ~/.vim/settings.vim
 source ~/.vim/mappings.vim
