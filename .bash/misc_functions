@@ -1,11 +1,11 @@
 #! /bin/bash
 
-declare -f mstat
 if [[ "$(uname)" = "Linux" ]]; then
     mstat() { stat -c %Y "$1"; }
 else
     mstat() { perl -e "print ((stat('$1'))[9])"; }
 fi
+declare -xf mstat
 
 gvim() {
     local remote
