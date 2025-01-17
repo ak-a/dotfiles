@@ -10,8 +10,8 @@ _gwt_default_branch=
 _gwt_update_epoch=0
 declare -a _gwt_trees
 declare -A _gwt_help
-[[ -z ${_gwt_ghes} ]] && declare -xr _gwt_ghes=git.drwholdings.com
-[[ -z ${_gwt_default_org} ]] && declare -xr _gwt_default_org=up-platform-infrastructure
+[[ -z ${_gwt_ghes} ]] && declare -gxr _gwt_ghes=git.drwholdings.com
+[[ -z ${_gwt_default_org} ]] && declare -gxr _gwt_default_org=up-platform-infrastructure
 
 #
 _gwt_refresh_trees() {
@@ -214,7 +214,12 @@ function _gwtsub_newbranch() { # cc_type JIRA
     local cc_type=${1?Missing conventional commit type}
     local jira=${2?Missing JIRA ticket}
     local branch directory
-    read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issue_description ${jira})")
+    if [[ -z $3 ]]; then
+        read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issue_description ${jira})")
+    else
+        directory="${cc_type}-${jira}-$3"
+        branch=${USER}/${directory}
+    fi
 
     #typeset -p cc_type jira branch directory
     #return 0
