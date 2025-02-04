@@ -68,6 +68,9 @@ nnoremap <silent> <leader>E :NERDTreeToggleVCS<CR>
 nnoremap <silent> <leader>f :NERDTreeFind<CR>
 nnoremap <silent> <F2> :NERDTreeToggleVCS<CR>
 
+" NERDTree plugin settings
+let g:NERDTreeGitStatusUseNerdFonts = 1
+
 " terraform
 let g:terraform_align=1
 let g:terraform_fold_sections=1
