@@ -43,7 +43,7 @@ _gwt_refresh_trees() {
     IFS=$'\n' _gwt_trees=($(sort <<< "${_gwt_trees[*]}"))
     unset IFS
     _gwt_update_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
-}
+} && type -t bc::cache > /dev/null && bc::cache _gwt_refresh_trees 1m 10s _gwt_bare
 
 # which worktree and subdir are we in
 _gwt_get_cwt() {
@@ -54,7 +54,7 @@ _gwt_get_cwt() {
 
 _gwt_get_default_branch() {
     _gwt_default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
-}
+} && type -t bc::cache > /dev/null && bc::cache _gwt_get_default_branch 7d 10s _gwt_bare
 
 # this populates env vars used by the various commands
 # needs to do the minimum required so it is quick
