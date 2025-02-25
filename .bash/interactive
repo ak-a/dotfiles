@@ -163,3 +163,9 @@ kb() {
 
 # Ghostty
 [[ -r ${GHOSTTY_RESOURCES_DIR}/shell-integration/bash/ghostty.bash ]] && source ${GHOSTTY_RESOURCES_DIR}/shell-integration/bash/ghostty.bash
+
+_x() {
+    set -x
+    "$@"
+    set +x
+}

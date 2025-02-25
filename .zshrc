@@ -99,7 +99,6 @@ plugins=(
     jira
     kubectl
     mosh
-    ripgrep
     sudo
     vim-interaction
     vi-mode
@@ -158,3 +157,8 @@ if [ -f '/Users/andrew.king/google-cloud-sdk/completion.zsh.inc' ]; then . '/Use
 #eval "$(logcli --completion-script-zsh)"
 
 complete -o nospace -C /home/linuxbrew/.linuxbrew/Cellar/terraform/1.5.7/bin/terraform terraform
+
+#asdf
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+mkdir -p "${ASDF_DATA_DIR:-$HOME/.asdf}/completions"
+asdf completion zsh > "${ASDF_DATA_DIR:-$HOME/.asdf}/completions/_asdf"
