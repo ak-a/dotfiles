@@ -43,7 +43,8 @@ _gwt_refresh_trees() {
     IFS=$'\n' _gwt_trees=($(sort <<< "${_gwt_trees[*]}"))
     unset IFS
     _gwt_update_epoch=$(date -r ${_gwt_bare}/worktrees +%s)
-} && type -t bc::cache > /dev/null && bc::cache _gwt_refresh_trees 1m 10s _gwt_bare
+} # && type -t bc::cache > /dev/null && bc::cache _gwt_refresh_trees 1m 10s _gwt_bare
+# TODO: if we want to chache then we have to do stuff to stdout
 
 # which worktree and subdir are we in
 _gwt_get_cwt() {
@@ -52,9 +53,14 @@ _gwt_get_cwt() {
     _gwt_subdir=${PWD#"${_gwt_bare}/${_gwt_cwt}"} # this is the path within the worktree
 }
 
+_gwt_git_default_branch() {
+    git remote show origin | awk '/HEAD/ { print $NF}'
+} && type -t bc::cache > /dev/null && bc::cache _gwt_git_default_branch 7d 1d _gwt_bare _gwt_trees
+
+# slightly annoying, but it is what is output not what it does that we need to cache
 _gwt_get_default_branch() {
-    _gwt_default_branch=$(git remote show origin | awk '/HEAD/ { print $NF}')
-} && type -t bc::cache > /dev/null && bc::cache _gwt_get_default_branch 7d 10s _gwt_bare
+    declare -gx _gwt_default_branch=$(_gwt_git_default_branch)
+}
 
 # this populates env vars used by the various commands
 # needs to do the minimum required so it is quick
@@ -387,10 +393,10 @@ REMOTE_COMMANDS
 
 _gwt_jira_issues() {
     jira issue list --assignee anking --status '~Done' --status '~Trash' --plain --columns KEY,SUMMARY --no-headers --order-by KEY --reverse
-} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 1m 10s
+} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issues 15m 1m
 _gwt_jira_issue_description() {
     jira issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2
-} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issue_description 1m 10s
+} && type -t bc::cache > /dev/null && bc::cache _gwt_jira_issue_description 15m 1m
 
 _gwt_complete() {
     local cur subcommand worktree regex
