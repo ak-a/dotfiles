@@ -252,35 +252,6 @@ function _gwtsub_newbranch() { # cc_type JIRA
 
     _git_set_commit_message ${cc_type} ${jira}
 }
-function _gwtsub_oldnewbranch() {
-    local new_wt=${1?Missing Worktree/branch}
-
-    local jira_ticket cc_type
-    [[ ${new_wt} =~ ^${_gwt_commit_type_re}-([A-Z]{2,}-[0-9]+)(-.*)? ]] || {
-        echo "nwtb: '${new_wt}' doesn't match cctype-JIRA e.g. fix-XX*-dd*"
-        return 2
-    }
-    cc_type=${BASH_REMATCH[1]}
-    jira_ticket=${BASH_REMATCH[2]}
-
-    (
-        builtin cd ${_gwt_bare}
-        git fetch \
-            && pushd ${_gwt_default_branch} \
-            && git pull \
-            && popd \
-            && git worktree add -b ${new_wt} ${new_wt} || return $?
-    ) || return $?
-    cd ${_gwt_bare}/${new_wt} || return $?
-
-    # now we setup the worktree branch
-    # install pre-commit if repo has config
-    [[ -r .pre-commit-config.yaml ]] && typeset -f pre-commit > /dev/null && pre-commit install
-    # set the upstream for future push
-    git push --set-upstream origin ${new_wt}
-
-    _git_set_commit_message ${cc_type} ${jira_ticket}
-}
 
 _git_set_commit_message() { # conventional-commit-type jira-ticket
     cat > .gitmessage << GITMESSAGE
@@ -530,9 +501,9 @@ gwt() {
         return 128
     }
 
-    #[[ ${!_gwt_aliases[*]} =~ ${regex} ]] && {
-        #set -- ${_gwt_aliases[$1]} "${@:2}"
-    #}
+    if [[ -v _gwt_aliases[$1] ]]; then
+        set -- ${_gwt_aliases[$1]} "${@:2}"
+    fi
 
     gwt_command="_gwtsub_${1}"
 

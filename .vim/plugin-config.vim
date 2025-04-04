@@ -184,7 +184,8 @@ nmap <silent> gr <Plug>(coc-references)
 
 autocmd FileType python,c,cpp,go TagbarOpen
 nmap <silent> <F8> :TagbarToggle<CR>
-let g:tagbar_ctags_bin = '/usr/bin/ctags'
+"let g:tagbar_ctags_bin = '/usr/bin/ctags'
+let g:tagbar_ctags_bin = '/opt/homebrew/bin/ctags'
 let g:tagbar_type_yaml = {
     \ 'ctagstype' : 'yaml',
     \ 'kinds' : [

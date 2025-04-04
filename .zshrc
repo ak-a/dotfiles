@@ -15,6 +15,8 @@ if type brew &>/dev/null
 then
     FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 fi
+#home fzf?
+[[ -d /opt/homebrew/opt/fzf ]] && export FZF_BASE=/opt/homebrew/opt/fzf
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -196,3 +198,28 @@ source ~/.zsh/gwt
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
+#gnu tools from brew
+[[ -d  /opt/homebrew/opt/gawk/libexec/gnubin ]] \
+    && export PATH="/opt/homebrew/opt/gawk/libexec/gnubin:$PATH"
+
+# completion bits
+type k9s >/dev/null && source <(k9s completion zsh)
+
+# functions
+
+kb() {
+    local kbdir
+    if [[ -f ${1} && ${1} =~ .*/kustomization.yaml ]]; then
+        kbdir=${1%/*}
+    else kbdir=${1}
+    fi
+    [[ -d ${kbdir} ]] || {
+        echo "kb: ${kbdir} not a directory" >&2
+        return 1
+    }
+    [[ -r ${kbdir}/kustomization.yaml ]] || {
+        echo "kb: ${kbdir} not a kustomize directory" >&2
+        return 1
+    }
+    kustomize build --enable-helm --load-restrictor LoadRestrictionsNone ${kbdir}
+}
