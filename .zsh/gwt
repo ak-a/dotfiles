@@ -7,6 +7,8 @@
 
 alias gwt >/dev/null && unalias gwt
 
+export JIRA_CLI=/opt/homebrew/bin/jira
+
 _gwt_bare=
 _gwt_default_branch=
 _gwt_update_epoch=0
@@ -20,28 +22,28 @@ _gwt_refresh_trees() {
     # we need to get base and list of trees
     local -a wtl
 
-    set -A wtl $(git worktree list --porcelain)
-    # expected output give an array looking like
+    wtl=("${(@f)$(git worktree list --porcelain)}")    # expected output give an array looking like
+    #   typeset -p wtl
     # typeset -a wtl=( 'worktree /Users/anking/src/k8s-infra' bare 'worktree /Users/anking/src/k8s-infra/fix-UPPI-4236-GHA-build-retry' 'HEAD d5e32b9c408fbebfe7659102d9e8b2b5b39527b4' 'branch refs/heads/fix-UPPI-4236-GHA-build-retry' 'worktree /Users/anking/src/k8s-infra/fix-UPPI-4659-Have-Externalsecrets-Kill-itself-if-it-can-t-pull' 'HEAD e3a267704683a5ca220fc03b420fe227640159e7' 'branch refs/heads/anking/fix-UPPI-4659-Have-Externalsecrets-Kill-itself-if-it-can' 'worktree /Users/anking/src/k8s-infra/master' 'HEAD f04443746e9ea642c44946b303a24af0afbaff99' 'branch refs/heads/master' )
 
-    [[ ${wtl[1]} =~ worktree && ${wtl[3]} == bare ]] || {
+    [[ ${wtl[1]} =~ worktree && ${wtl[2]} == bare ]] || {
         echo "gwt: ERROR can't parse 'git worktree list'" >&2
-        echo "gwt: 1: '${wtl[1]}' 3: '${wtl[3]}'" >&2
+        echo "gwt: 1: '${wtl[1]}' 2: '${wtl[2]}'" >&2
         return 1
     }
 
     # so our base directory is:
-    _gwt_bare=${wtl[2]}
+    _gwt_bare=${wtl[1]#* }
     # shift bare out of the way
-    wtl=("${wtl[@]:3}")
+    wtl=("${wtl[@]:2}")
 
     # now list the other worktrees...
     _gwt_trees=()
     while [[ ${#wtl[@]} -gt 0 ]]; do
-        if [[ ${wtl[1]} == worktree ]]; then
+        if [[ ${wtl[1]} =~ worktree ]]; then
             # next element is the worktree directory
-            _gwt_trees+=(${wtl[2]##*/}) # grab the final directory
-            wtl=("${wtl[@]:1}")         # shift 2 in total
+            _gwt_trees+=(${wtl[1]##*/}) # grab the final directory
+            wtl=("${wtl[@]:2}")         # shift 3 in total
         fi
         wtl=("${wtl[@]:1}") # shift 1
     done
@@ -194,9 +196,9 @@ function join_by {
 }
 
 _git_emojis=("{(@f)}$(< ~/.git-emoji)")
-_gwt_commit=("{(@f)}$(sort ~/.conventional-commit)")
+_gwt_commit=( "${(@f)$(sort ~/.conventional-commit)}" )
 _gwt_commit_type=(${_gwt_commit[@]%% *})
-_gwt_commit_type_re="($(join_by '|' "${_gwt_commit_type[@]}"))"
+#_gwt_commit_type_re="($(join_by '|' "${_gwt_commit_type[@]}"))"
 
 _gwt_jira_description2branch_directory() { # cc_type jira description...
     # returns something suitable for a branch and directory
@@ -253,6 +255,12 @@ function _gwtsub_newbranch() { # cc_type JIRA
     _git_set_commit_message ${cc_type} ${jira}
 }
 
+_gwt_comp_newbranch() {
+    _arguments \
+        ':commit type:( ${_gwt_commit_type[*]} )' \
+        ':jira issue:{_gwt_jira_issue_comp}'
+}
+
 _git_set_commit_message() { # conventional-commit-type jira-ticket
     cat > .gitmessage << GITMESSAGE
 ${1:-feat}: ${2:-UPPI} ####SUBJECT WHAT####
@@ -270,8 +278,14 @@ function _gwtsub_remove() { # default is _gwt_cwt
         git status
     fi
     # shellcheck disable=SC2164
-    popd 2> /dev/null || { popd -n && cd ${_gwt_default_branch}; }
+    popd -q 2> /dev/null || { popd -1 && cd ${_gwt_default_branch}; }
     return $?
+}
+
+_gwt_comp_remove() {
+  _gwt_refresh_trees
+  _arguments \
+    ':worktrees:( ${_gwt_trees[*]} )'
 }
 
 # shellcheck disable=SC2154
@@ -369,10 +383,24 @@ REMOTE_COMMANDS
 }
 
 _gwt_jira_issues() {
-    jira issue list --assignee anking --status '~Done' --status '~Trash' --plain --columns KEY,SUMMARY --no-headers --order-by KEY --reverse
+    ${JIRA_CLI} issue list \
+        --assignee anking \
+        --status '~Done' \
+        --status '~Trash' \
+        --plain \
+        --columns KEY,SUMMARY \
+        --no-headers \
+        --order-by KEY \
+        --reverse 2>/dev/null \
 } # && typeset -f bc::cache > /dev/null && bc::cache _gwt_jira_issues 15m 1m
+_gwt_jira_issue_comp() {
+
+    #echo 'UPPI-4659\:Have Externalsecrets Kill itself if it can'"'"'t pull secrets UPPI-4810\:POC Argo Rollouts for UP UPPI-6781\:Reduce Nodegroup Sizes for Annual Savings of $42400 UPPI-6847\:Argo Rollouts - Update Argo CD docs about UI extensions UPPI-6911\:Create a "Hello World" App that always models best practices UPPI-7126\:Redirect alerts to individual PD services'
+    #return
+    _gwt_jira_issues | cut -f 1
+}
 _gwt_jira_issue_description() {
-    jira issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2
+    ${JIRA_CLI} issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2
 } # && typeset -f bc::cache > /dev/null && bc::cache _gwt_jira_issue_description 15m 1m
 
 _gwt_complete() {
@@ -539,5 +567,21 @@ gwt() {
     return $?
 }
 
-#need a zsh version
-#complete -F _gwt_complete gwt
+# completion...
+compdef _gwt_comp gwt
+_gwt_comp() {
+    local line state
+
+    _arguments -C \
+               "1: :->cmds" \
+               "*::arg:->args"
+    case "$state" in
+        cmds)
+            _values "dolt command" \
+                    ${_gwt_commands[*]}
+            ;;
+        args)
+            _gwt_comp_${line[1]}
+            ;;
+    esac
+}
