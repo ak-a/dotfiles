@@ -59,7 +59,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+ENABLE_CORRECTION="true"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
 # Caution: this setting can cause issues with multiline prompts (zsh 5.7.1 and newer seem to work)
@@ -165,7 +165,7 @@ export LSCOLORS=gxfxbEaEBxxEhEhBaDaCaD
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-setopt autocd autopushd #\ pushdignoredups
+setopt autocd #\ pushdignoredups
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform
@@ -184,6 +184,9 @@ if [ -f '~/google-cloud-sdk/completion.zsh.inc' ]; then . '~/google-cloud-sdk/co
 
 complete -o nospace -C /home/linuxbrew/.linuxbrew/Cellar/terraform/1.5.7/bin/terraform terraform
 
+# tokens etc
+export AOAPI_TOKEN=$(< ~/.ssh/azure-openapi.drwcloud.com.token)
+
 #asdf
 export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 mkdir -p "${ASDF_DATA_DIR:-$HOME/.asdf}/completions"
@@ -194,6 +197,9 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 # aliases
 alias kx=kubectx
+alias L=~/launcher/bin/launcher
+
+# functions
 source ~/.zsh/gwt
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
@@ -223,3 +229,20 @@ kb() {
     }
     kustomize build --enable-helm --load-restrictor LoadRestrictionsNone ${kbdir}
 }
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/etc/profile.d/conda.sh" ]; then
+        . "/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/etc/profile.d/conda.sh"
+    else
+        export PATH="/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+source ~/.zsh/drwfunctions
