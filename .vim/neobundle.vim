@@ -18,7 +18,7 @@ NeoBundle 'google/vim-maktaba'
 NeoBundle 'google/vim-codefmt'
 
 NeoBundle 'airblade/vim-gitgutter'
-NeoBundle 'christoomey/vim-tmux-navigator'
+"NeoBundle 'christoomey/vim-tmux-navigator'
 NeoBundle 'ctrlpvim/ctrlp.vim'
 NeoBundle 'dense-analysis/ale'
 NeoBundle 'fatih/vim-go'

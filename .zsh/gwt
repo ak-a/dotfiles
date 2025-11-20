@@ -240,10 +240,12 @@ function _gwtsub_newbranch() { # cc_type JIRA
         builtin cd ${_gwt_bare?}
         git fetch \
             && pushd ${_gwt_default_branch?} \
+            && git checkout ${_gwt_default_branch} \
             && git pull \
             && popd \
             && git worktree add -b ${branch} ${directory} || return $?
     ) || return $?
+    dirs -c
     cd ${_gwt_bare}/${directory} || return $?
 
     # now we setup the worktree branch
@@ -286,6 +288,10 @@ _gwt_comp_remove() {
   _gwt_refresh_trees
   _arguments \
     ':worktrees:( ${_gwt_trees[*]} )'
+}
+
+_gwt_comp_cd() {
+    _gwt_comp_remove
 }
 
 # shellcheck disable=SC2154
@@ -351,6 +357,12 @@ _gwt_run_command_in_another_tree() { # command remote-worktree args...
         "$@"
         popd || return $?
     }
+}
+
+_gwt_help[default]='cd to default branch'
+function _gwtsub_default() {
+    _gwtsub_refresh || return $?
+    cd ${_gwt_bare?}/${_gwt_default_branch?No default branch}
 }
 
 # shellcheck disable=SC2120

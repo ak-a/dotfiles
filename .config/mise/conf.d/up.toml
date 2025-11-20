@@ -1,0 +1,28 @@
+[tools]
+argocd = "3.1.9"
+aws = "2.22.35" # Pinned as latest version to support Pure S3 Api. See: https://wiki.drwholdings.com/pages/viewpage.action?pageId=407638502#PureFBObjectS3GettingStarted&FAQ-UsingAWSCLI
+go-jsonnet = "0.21.0"
+helm = "3.18.4"
+kubectl = "1.33.1"
+kubectx = "0.9.5"
+kubelogin = "1.34.2"
+kubens = "0.9.5"
+kustomize = "5.7.0"
+vault = "1.15.5"
+
+[tasks]
+up-tooling = { run = "mkdir -p ~/.config/mise/conf.d && curl https://uppi-prod-public.s3.chhq.drwholdings.com/mise/up.toml -o ~/.config/mise/conf.d/up.toml && mise install", description = "Get latest up.toml config for shared UP tooling." }
+
+#[[tasks.launcher-tools]]
+#run = "curl localhost:8080/launcher.toml -o ~/.config/mise/conf.d/launcher.toml"
+#description = "Get launcher.toml config. This is deprecated but may still be needed by your team."
+
+[settings.url_replacements]
+# https://mise.jdx.dev/url-replacements.html#url-replacements
+"dl.k8s.io" = "artifacts.drwholdings.com/artifactory/dlk8sio-generic-remote"
+#"https://api.github.com" = "https://artifacts.drwholdings.com/artifactory/api-github-generic-remote"
+"https://github.com" = "https://artifacts.drwholdings.com/artifactory/github-generic-remote"
+"awscli.amazonaws.com" = "artifacts.drwholdings.com/artifactory/awscli-generic-remote"
+"get.helm.sh" = "artifacts.drwholdings.com/artifactory/get-helm-sh-generic-remote"
+"releases.hashicorp.com" = "artifacts.drwholdings.com/artifactory/hashicorp-generic-remote"
+# "regex:^http.*://(.+)" = "http://no-url-replacement-configured/$1"  # Ensure everything downloads from Artifactory.

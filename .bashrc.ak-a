@@ -100,9 +100,9 @@ function _bashrc_source() { # file
             BASH_XTRACEFD=5
             set -x
         }
-        _bashrc_ms=$(date +%s%3N)
+        _bashrc_ms=$(date +%s%N)
         source "${_bashrc}"
-        _bashrc_ms=$(($(date +%s%3N) - _bashrc_ms))
+        _bashrc_ms=$(($(date +%s%N) - _bashrc_ms))
         ## check if we are debugging _bashrc all before switching off set -x
         [[ " ${_debug_bashrc[*]} " =~ \ ${_bashrc_file}\  && ! -r ${HOME}/.bashrc.debug ]] && set +x
         _bashrc_source_ms[${_bashrc}]=${_bashrc_ms}

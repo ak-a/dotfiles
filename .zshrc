@@ -1,5 +1,7 @@
 [[ -r ~/.zprofile ]] && source ~/.zprofile
 
+setopt nosharehistory
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -17,6 +19,12 @@ then
 fi
 #home fzf?
 [[ -d /opt/homebrew/opt/fzf ]] && export FZF_BASE=/opt/homebrew/opt/fzf
+
+##znap
+[[ -r ~/.zsh/znap/znap.zsh ]] ||
+    git clone --depth 1 -- \
+        https://github.com/marlonrichert/zsh-snap.git ~/.zsh/znap
+source ~/.zsh/znap/znap.zsh  # Start Znap
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -59,7 +67,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
-ENABLE_CORRECTION="true"
+ENABLE_CORRECTION="false"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
 # Caution: this setting can cause issues with multiline prompts (zsh 5.7.1 and newer seem to work)
@@ -89,7 +97,6 @@ HIST_STAMPS="yyyy-mm-dd"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     argocd
-    asdf
     aws
     branch
     brew
@@ -110,13 +117,13 @@ plugins=(
     golang
     helm
     history-substring-search
-    jira
     kops
     kubectl
     kubectx
     lpass
     macos
     minikube
+    mise
     mosh
     node
     npm
@@ -158,9 +165,9 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 #export LSCOLORS=exfxcxdxbxegedabagacad
-export LSCOLORS=gxfxbEaEBxxEhEhBaDaCaD
-# LS_COLORS='rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:';
-#export LS_COLORS
+#export LSCOLORS=gxfxbEaEBxxEhEhBaDaCaD
+LS_COLORS='rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:';
+export LS_COLORS
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -186,11 +193,6 @@ complete -o nospace -C /home/linuxbrew/.linuxbrew/Cellar/terraform/1.5.7/bin/ter
 
 # tokens etc
 export AOAPI_TOKEN=$(< ~/.ssh/azure-openapi.drwcloud.com.token)
-
-#asdf
-export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
-mkdir -p "${ASDF_DATA_DIR:-$HOME/.asdf}/completions"
-asdf completion zsh > "${ASDF_DATA_DIR:-$HOME/.asdf}/completions/_asdf"
 
 # krew / kubectl plugins
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
@@ -230,19 +232,86 @@ kb() {
     kustomize build --enable-helm --load-restrictor LoadRestrictionsNone ${kbdir}
 }
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/etc/profile.d/conda.sh" ]; then
-        . "/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/etc/profile.d/conda.sh"
-    else
-        export PATH="/Users/anking/.asdf/installs/python/miniforge3-23.3.1-1/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
 source ~/.zsh/drwfunctions
+
+source <(jira completion zsh)
+test -e ~/.ssh/jira-token.sh && source ~/.ssh/jira-token.sh
+
+# Added by Windsurf
+export PATH="/Users/anking/.codeium/windsurf/bin:$PATH"
+unset JAVA_HOME
+export PATH='/Users/anking/.codeium/windsurf/bin:/Users/anking/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/homebrew/bin:/usr/local/go/bin:/opt/homebrew/opt/gawk/libexec/gnubin:/Users/anking/.krew/bin:/Users/anking/bin:/Users/anking/.cargo/bin:/Applications/Ghostty.app/Contents/MacOS'
+
+##MISE##
+precmd_functions=( ${precmd_functions:#_mise_hook_precmd} )
+chpwd_functions=( ${chpwd_functions:#_mise_hook_chpwd} )
+(( $+functions[_mise_hook_precmd] )) && unset -f _mise_hook_precmd
+(( $+functions[_mise_hook_chpwd] )) && unset -f _mise_hook_chpwd
+(( $+functions[_mise_hook] )) && unset -f _mise_hook
+(( $+functions[mise] )) && unset -f mise
+unset MISE_SHELL
+unset __MISE_DIFF
+unset __MISE_SESSION
+unset __MISE_ZSH_PRECMD_RUN
+export MISE_SHELL=zsh
+if [ -z "${__MISE_ORIG_PATH:-}" ]; then
+  export __MISE_ORIG_PATH="$PATH"
+fi
+export __MISE_ZSH_PRECMD_RUN=0
+
+mise() {
+  local command
+  command="${1:-}"
+  if [ "$#" = 0 ]; then
+    command /opt/homebrew/bin/mise
+    return
+  fi
+  shift
+
+  case "$command" in
+  deactivate|shell|sh)
+    # if argv doesn't contains -h,--help
+    if [[ ! " $@ " =~ " --help " ]] && [[ ! " $@ " =~ " -h " ]]; then
+      eval "$(command /opt/homebrew/bin/mise "$command" "$@")"
+      return $?
+    fi
+    ;;
+  esac
+  command /opt/homebrew/bin/mise "$command" "$@"
+}
+
+_mise_hook() {
+  eval "$(/opt/homebrew/bin/mise hook-env -s zsh)";
+}
+_mise_hook_precmd() {
+  eval "$(/opt/homebrew/bin/mise hook-env -s zsh --reason precmd)";
+}
+_mise_hook_chpwd() {
+  eval "$(/opt/homebrew/bin/mise hook-env -s zsh --reason chpwd)";
+}
+typeset -ag precmd_functions;
+if [[ -z "${precmd_functions[(r)_mise_hook_precmd]+1}" ]]; then
+  precmd_functions=( _mise_hook_precmd ${precmd_functions[@]} )
+fi
+typeset -ag chpwd_functions;
+if [[ -z "${chpwd_functions[(r)_mise_hook_chpwd]+1}" ]]; then
+  chpwd_functions=( _mise_hook_chpwd ${chpwd_functions[@]} )
+fi
+
+_mise_hook
+if [ -z "${_mise_cmd_not_found:-}" ]; then
+    _mise_cmd_not_found=1
+    [ -n "$(declare -f command_not_found_handler)" ] && eval "${$(declare -f command_not_found_handler)/command_not_found_handler/_command_not_found_handler}"
+
+    function command_not_found_handler() {
+        if [[ "$1" != "mise" && "$1" != "mise-"* ]] && /opt/homebrew/bin/mise hook-not-found -s zsh -- "$1"; then
+          _mise_hook
+          "$@"
+        elif [ -n "$(declare -f _command_not_found_handler)" ]; then
+            _command_not_found_handler "$@"
+        else
+            echo "zsh: command not found: $1" >&2
+            return 127
+        fi
+    }
+fi
