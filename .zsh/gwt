@@ -323,15 +323,52 @@ function _gwtsub_remove() { # default is _gwt_cwt
     return 0
 }
 
-_gwt_comp_remove() {
-  _gwt_refresh_trees
-  _arguments \
-    ':worktrees:( ${_gwt_trees[*]} )'
+_gwt_comp_worktrees() {
+    _gwt_refresh_trees
+    _arguments \
+        ':worktrees:( ${_gwt_trees[*]} )'
 }
 
-_gwt_comp_cd() {
-    _gwt_comp_remove
+_gwt_comp_remove() { _gwt_comp_worktrees; }
+_gwt_comp_fremove() { _gwt_comp_worktrees; }
+_gwt_comp_cd() { _gwt_comp_worktrees; }
+
+_gwt_comp_branch() {
+    local -a remote_branches
+    remote_branches=(${${(f)"$(git branch -r 2>/dev/null)"}#  origin/})
+    _arguments \
+        ':branch:( ${remote_branches[*]} )'
 }
+
+_gwt_comp_cp() {
+    # files first, worktree as last arg
+    _arguments \
+        '*:file or worktree:_gwt_comp_file_or_worktree'
+}
+
+_gwt_comp_diff() { _gwt_comp_cp; }
+_gwt_comp_pull() { _gwt_comp_cp; }
+
+_gwt_comp_file_or_worktree() {
+    _alternative \
+        'files:file:_files' \
+        "worktrees:worktree:( ${_gwt_trees[*]} )"
+}
+
+_gwt_comp_list() {
+    _arguments \
+        '1:option:(-l)'
+}
+
+_gwt_comp_help() {
+    _arguments \
+        ':command:( ${_gwt_commands[*]} )'
+}
+
+# no-arg subcommands
+_gwt_comp_default() { : ; }
+_gwt_comp_refresh() { : ; }
+_gwt_comp_clone() { : ; }
 
 # shellcheck disable=SC2154
 _gwt_help[fremove]='removes a worktree with force'
@@ -568,18 +605,31 @@ gwt() {
 # completion...
 compdef _gwt_comp gwt
 _gwt_comp() {
-    local line state
+    local line state subcmd
 
     _arguments -C \
                "1: :->cmds" \
                "*::arg:->args"
     case "$state" in
         cmds)
-            _values "dolt command" \
-                    ${_gwt_commands[*]}
+            local -a cmd_descs=()
+            local c
+            for c in ${_gwt_commands[@]}; do
+                cmd_descs+=("${c}:${_gwt_help[$c]:-}")
+            done
+            for c in ${(k)_gwt_aliases}; do
+                cmd_descs+=("${c}:alias for ${_gwt_aliases[$c]}")
+            done
+            _describe 'gwt command' cmd_descs
             ;;
         args)
-            _gwt_comp_${line[1]}
+            # resolve aliases
+            subcmd=${line[1]}
+            [[ -v _gwt_aliases[$subcmd] ]] && subcmd=${_gwt_aliases[$subcmd]}
+            # dispatch to per-subcommand completer if it exists
+            if typeset -f _gwt_comp_${subcmd} > /dev/null 2>&1; then
+                _gwt_comp_${subcmd}
+            fi
             ;;
     esac
 }
