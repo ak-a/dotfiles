@@ -509,7 +509,10 @@ REMOTE_COMMANDS
     return 0
 }
 
-_gwt_jira_issues() {
+_gwt_jira_cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/gwt
+_gwt_jira_cache_ttl=900 # 15 minutes
+
+_gwt_jira_issues_uncached() {
     ${JIRA_CLI} issue list \
         --assignee anking \
         --status '~Done' \
@@ -518,17 +521,49 @@ _gwt_jira_issues() {
         --columns KEY,SUMMARY \
         --no-headers \
         --order-by KEY \
-        --reverse 2>/dev/null \
-} # && typeset -f bc::cache > /dev/null && bc::cache _gwt_jira_issues 15m 1m
-_gwt_jira_issue_comp() {
-
-    #echo 'UPPI-4659\:Have Externalsecrets Kill itself if it can'"'"'t pull secrets UPPI-4810\:POC Argo Rollouts for UP UPPI-6781\:Reduce Nodegroup Sizes for Annual Savings of $42400 UPPI-6847\:Argo Rollouts - Update Argo CD docs about UI extensions UPPI-6911\:Create a "Hello World" App that always models best practices UPPI-7126\:Redirect alerts to individual PD services'
-    #return
-    _gwt_jira_issues | cut -f 1
+        --reverse 2>/dev/null
 }
+
+_gwt_jira_issues() {
+    local cache_file=${_gwt_jira_cache_dir}/issues
+    local now=$(date +%s)
+
+    [[ -d ${_gwt_jira_cache_dir} ]] || mkdir -p ${_gwt_jira_cache_dir}
+
+    if [[ -f ${cache_file} ]]; then
+        local mtime=$(date -r ${cache_file} +%s)
+        if (( now - mtime < _gwt_jira_cache_ttl )); then
+            cat ${cache_file}
+            return 0
+        fi
+    fi
+
+    _gwt_jira_issues_uncached | tee ${cache_file}
+}
+
+_gwt_jira_issue_comp() {
+    local -a jira_descs
+    local key summary
+    while IFS=$'\t' read -r key summary; do
+        [[ -n ${key} ]] && jira_descs+=("${key}:${summary}")
+    done < <(_gwt_jira_issues)
+    _describe 'jira issue' jira_descs
+}
+
 _gwt_jira_issue_description() {
-    ${JIRA_CLI} issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2
-} # && typeset -f bc::cache > /dev/null && bc::cache _gwt_jira_issue_description 15m 1m
+    local cache_file=${_gwt_jira_cache_dir}/issue-${1}
+    local now=$(date +%s)
+
+    if [[ -f ${cache_file} ]]; then
+        local mtime=$(date -r ${cache_file} +%s)
+        if (( now - mtime < _gwt_jira_cache_ttl )); then
+            cat ${cache_file}
+            return 0
+        fi
+    fi
+
+    ${JIRA_CLI} issue list -q"issue=$1" --plain --columns SUMMARY --no-headers | cut -f2 | tee ${cache_file}
+}
 
 
 _gwt_build_complete_help() {
