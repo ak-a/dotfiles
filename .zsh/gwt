@@ -404,8 +404,8 @@ function _gwtsub_list() {
             # Get current branch
             branch=$(git branch --show-current)
 
-            # Check if worktree is clean
-            if git diff-index --quiet HEAD -- 2>/dev/null; then
+            # Check if worktree is clean (staged, unstaged, and untracked)
+            if git diff-index --quiet HEAD -- 2>/dev/null && [[ -z $(git status --porcelain 2>/dev/null) ]]; then
                 clean_status="clean"
             else
                 clean_status="dirty"
