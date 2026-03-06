@@ -70,6 +70,7 @@ nnoremap <silent> <F2> :NERDTreeToggleVCS<CR>
 
 " NERDTree plugin settings
 let g:NERDTreeGitStatusUseNerdFonts = 1
+let g:NERDTreeWinSize=45
 
 " terraform
 let g:terraform_align=1
@@ -122,9 +123,9 @@ let g:ale_fixers      = {
     \ 'javascript': ['prettier', 'eslint'],
     \ 'python': ['black'],
     \ 'sh': ['shfmt'],
-    \ 'yaml': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
+    \ 'yaml': ['prettier', 'yamlfix', 'trim_whitespace', 'remove_trailing_lines'],
     \ 'markdown': ['prettier'],
-    \ 'yaml.gha': ['prettier', 'yamlfix', 'yamlfmt', 'trim_whitespace', 'remove_trailing_lines'],
+    \ 'yaml.gha': ['prettier', 'yamlfix', 'trim_whitespace', 'remove_trailing_lines'],
     \}
 let g:ale_linters      = {
     \ 'javascript': ['prettier', 'eslint'],
@@ -224,3 +225,13 @@ nnoremap <silent> <F3> :ToggleWorkspace<CR>
 let g:codeium_server_config = {
     \'portal_url': 'https://codeium.drwholdings.com',
     \'api_url': 'https://codeium.drwholdings.com/_route/api_server' }
+
+" claude stuff
+"
+let g:claude_api_key = system('jq -j .env.ANTHROPIC_FOUNDRY_API_KEY < ~/.claude/settings.json')
+let g:claude_api_url = 'https://drw-azureai.drwcloud.com/anthropic/v1/messages'
+let g:claude_model = 'claude-sonnet-4-5'
+let g:claude_map_implement = "<Leader>ci"
+let g:claude_map_open_chat = "<Leader>cc"
+let g:claude_map_send_chat_message = "<C-]>"
+let g:claude_map_cancel_response = "<Leader>cx"

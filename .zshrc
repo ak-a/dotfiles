@@ -1,6 +1,6 @@
 [[ -r ~/.zprofile ]] && source ~/.zprofile
 
-setopt nosharehistory
+setopt nosharehistory autocd #\ pushdignoredups
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -12,11 +12,6 @@ fi
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$PATH
 
-#homebrew completion
-if type brew &>/dev/null
-then
-    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
-fi
 #home fzf?
 [[ -d /opt/homebrew/opt/fzf ]] && export FZF_BASE=/opt/homebrew/opt/fzf
 
@@ -24,7 +19,7 @@ fi
 [[ -r ~/.zsh/znap/znap.zsh ]] ||
     git clone --depth 1 -- \
         https://github.com/marlonrichert/zsh-snap.git ~/.zsh/znap
-source ~/.zsh/znap/znap.zsh  # Start Znap
+#source ~/.zsh/znap/znap.zsh  # Start Znap
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -99,7 +94,6 @@ plugins=(
     argocd
     aws
     branch
-    brew
     colored-man-pages
     colorize
     command-not-found
@@ -123,7 +117,6 @@ plugins=(
     lpass
     macos
     minikube
-    mise
     mosh
     node
     npm
@@ -172,11 +165,6 @@ export LS_COLORS
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-setopt autocd #\ pushdignoredups
-
-autoload -U +X bashcompinit && bashcompinit
-complete -o nospace -C /opt/homebrew/bin/terraform terraform
-
 # key bindings
 bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
@@ -189,7 +177,9 @@ if [ -f '~/google-cloud-sdk/completion.zsh.inc' ]; then . '~/google-cloud-sdk/co
 #[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
 #eval "$(logcli --completion-script-zsh)"
 
-complete -o nospace -C /home/linuxbrew/.linuxbrew/Cellar/terraform/1.5.7/bin/terraform terraform
+# Added by Windsurf
+export PATH="/Users/anking/.codeium/windsurf/bin:$PATH"
+unset JAVA_HOME
 
 # tokens etc
 export AOAPI_TOKEN=$(< ~/.ssh/azure-openapi.drwcloud.com.token)
@@ -200,15 +190,13 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 # aliases
 alias kx=kubectx
 alias L=~/launcher/bin/launcher
+alias diff='diff -u'
 
 # functions
 source ~/.zsh/gwt
 
+[[ -z $GHOSTTY_SHELL_FEATURES ]] && \
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
-#gnu tools from brew
-[[ -d  /opt/homebrew/opt/gawk/libexec/gnubin ]] \
-    && export PATH="/opt/homebrew/opt/gawk/libexec/gnubin:$PATH"
 
 # completion bits
 type k9s >/dev/null && source <(k9s completion zsh)
@@ -234,84 +222,25 @@ kb() {
 
 source ~/.zsh/drwfunctions
 
+type jira >/dev/null && \
 source <(jira completion zsh)
 test -e ~/.ssh/jira-token.sh && source ~/.ssh/jira-token.sh
 
-# Added by Windsurf
-export PATH="/Users/anking/.codeium/windsurf/bin:$PATH"
-unset JAVA_HOME
-export PATH='/Users/anking/.codeium/windsurf/bin:/Users/anking/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/homebrew/bin:/usr/local/go/bin:/opt/homebrew/opt/gawk/libexec/gnubin:/Users/anking/.krew/bin:/Users/anking/bin:/Users/anking/.cargo/bin:/Applications/Ghostty.app/Contents/MacOS'
+[[ -r ~/.zsh/mise ]] && source ~/.zsh/mise
+export MISE_GITHUB_TOKEN=$(< ~/.ssh/github.mise.token)
 
-##MISE##
-precmd_functions=( ${precmd_functions:#_mise_hook_precmd} )
-chpwd_functions=( ${chpwd_functions:#_mise_hook_chpwd} )
-(( $+functions[_mise_hook_precmd] )) && unset -f _mise_hook_precmd
-(( $+functions[_mise_hook_chpwd] )) && unset -f _mise_hook_chpwd
-(( $+functions[_mise_hook] )) && unset -f _mise_hook
-(( $+functions[mise] )) && unset -f mise
-unset MISE_SHELL
-unset __MISE_DIFF
-unset __MISE_SESSION
-unset __MISE_ZSH_PRECMD_RUN
-export MISE_SHELL=zsh
-if [ -z "${__MISE_ORIG_PATH:-}" ]; then
-  export __MISE_ORIG_PATH="$PATH"
+
+#homebrew completion
+#gnu tools from brew
+[[ -d  /opt/homebrew/opt/gawk/libexec/gnubin ]] \
+    && export PATH="/opt/homebrew/opt/gawk/libexec/gnubin:$PATH"
+# prefer brew bits over system
+typeset -U PATH
+export PATH="/opt/workbrew/bin:/opt/homebrew/bin:$PATH"
+if type brew &>/dev/null
+then
+    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 fi
-export __MISE_ZSH_PRECMD_RUN=0
-
-mise() {
-  local command
-  command="${1:-}"
-  if [ "$#" = 0 ]; then
-    command /opt/homebrew/bin/mise
-    return
-  fi
-  shift
-
-  case "$command" in
-  deactivate|shell|sh)
-    # if argv doesn't contains -h,--help
-    if [[ ! " $@ " =~ " --help " ]] && [[ ! " $@ " =~ " -h " ]]; then
-      eval "$(command /opt/homebrew/bin/mise "$command" "$@")"
-      return $?
-    fi
-    ;;
-  esac
-  command /opt/homebrew/bin/mise "$command" "$@"
-}
-
-_mise_hook() {
-  eval "$(/opt/homebrew/bin/mise hook-env -s zsh)";
-}
-_mise_hook_precmd() {
-  eval "$(/opt/homebrew/bin/mise hook-env -s zsh --reason precmd)";
-}
-_mise_hook_chpwd() {
-  eval "$(/opt/homebrew/bin/mise hook-env -s zsh --reason chpwd)";
-}
-typeset -ag precmd_functions;
-if [[ -z "${precmd_functions[(r)_mise_hook_precmd]+1}" ]]; then
-  precmd_functions=( _mise_hook_precmd ${precmd_functions[@]} )
-fi
-typeset -ag chpwd_functions;
-if [[ -z "${chpwd_functions[(r)_mise_hook_chpwd]+1}" ]]; then
-  chpwd_functions=( _mise_hook_chpwd ${chpwd_functions[@]} )
-fi
-
-_mise_hook
-if [ -z "${_mise_cmd_not_found:-}" ]; then
-    _mise_cmd_not_found=1
-    [ -n "$(declare -f command_not_found_handler)" ] && eval "${$(declare -f command_not_found_handler)/command_not_found_handler/_command_not_found_handler}"
-
-    function command_not_found_handler() {
-        if [[ "$1" != "mise" && "$1" != "mise-"* ]] && /opt/homebrew/bin/mise hook-not-found -s zsh -- "$1"; then
-          _mise_hook
-          "$@"
-        elif [ -n "$(declare -f _command_not_found_handler)" ]; then
-            _command_not_found_handler "$@"
-        else
-            echo "zsh: command not found: $1" >&2
-            return 127
-        fi
-    }
-fi
+alias brew=/opt/workbrew/bin/brew
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /opt/homebrew/bin/terraform terraform
