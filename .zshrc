@@ -223,7 +223,7 @@ kb() {
 source ~/.zsh/drwfunctions
 
 type jira >/dev/null && \
-source <(jira completion zsh)
+#source <(jira completion zsh)
 test -e ~/.ssh/jira-token.sh && source ~/.ssh/jira-token.sh
 
 [[ -r ~/.zsh/mise ]] && source ~/.zsh/mise
@@ -241,6 +241,8 @@ if type brew &>/dev/null
 then
     FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 fi
+# add uvx stuff
+export PATH=$PATH:~/.local/bin
 alias brew=/opt/workbrew/bin/brew
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform

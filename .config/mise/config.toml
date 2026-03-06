@@ -20,11 +20,10 @@ shellcheck = "latest"
 usage = "latest"
 uv = "latest"
 vault = "1.15"
-vim = "latest"
+vim = "9.2.0045" # pinned — asdf plugin broken with Artifactory proxy
 yq = "latest"
-"github:ankitpokhrel/jira-cli" = "latest"
-"github:k8sgpt-ai/k8sgpt" = "latest"
 node = "latest"
+# jira-cli and k8sgpt fail due to Artifactory proxy 401 — keep on brew
 
 [settings]
 trusted_config_paths = ["~/src"]
