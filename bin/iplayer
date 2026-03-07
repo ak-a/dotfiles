@@ -61,9 +61,15 @@ iplayer_daemon
         echo "$@"
         exit 0
     fi
+    if [[ $1 =~ https://www.bbc.co.uk/iplayer/episodes/.*\?seriesId=.*-structural-.*-(.*) ]]; then
+        pid=${BASH_REMATCH[1]}
+        echo "Request series ${pid}" >&2
+        echo "pr --pid=${pid}"
+        exit 0
+    fi
     if [[ $1 =~ https://www.bbc.co.uk/iplayer/episodes/[a-z0-9]{8}/.* ]]; then
         pid=$(echo $1 | cut -d/ -f6)
-        echo "Request series $(echo $1 | cut -d/ -f6-)" >&2
+        echo "Request series ${pid}" >&2
         echo "pr --pid=${pid}"
         exit 0
     fi
