@@ -462,6 +462,8 @@ function _gwtsub_clone() {
 
     git worktree add ./${_gwt_default_branch} ${_gwt_default_branch} \
         && cd ${_gwt_default_branch} || return $?
+    git fetch
+    git branch --set-upstream-to=origin/${_gwt_default_branch} ${_gwt_default_branch}
 }
 
 _gwt_run_command_in_another_tree() { # command remote-worktree args...
