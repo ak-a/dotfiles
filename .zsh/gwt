@@ -23,8 +23,6 @@ _gwt_refresh_trees() {
     local -a wtl
     local wtdir
 
-    [[ -z ${_gwt_default_branch} ]] && _gwt_get_default_branch
-
     wtl=("${(@f)$(git worktree list --porcelain)}")    # expected output give an array looking like
     #   typeset -p wtl
     # typeset -a wtl=( 'worktree /Users/anking/src/k8s-infra' bare 'worktree /Users/anking/src/k8s-infra/fix-UPPI-4236-GHA-build-retry' 'HEAD d5e32b9c408fbebfe7659102d9e8b2b5b39527b4' 'branch refs/heads/fix-UPPI-4236-GHA-build-retry' 'worktree /Users/anking/src/k8s-infra/fix-UPPI-4659-Have-Externalsecrets-Kill-itself-if-it-can-t-pull' 'HEAD e3a267704683a5ca220fc03b420fe227640159e7' 'branch refs/heads/anking/fix-UPPI-4659-Have-Externalsecrets-Kill-itself-if-it-can' 'worktree /Users/anking/src/k8s-infra/master' 'HEAD f04443746e9ea642c44946b303a24af0afbaff99' 'branch refs/heads/master' )
@@ -37,6 +35,8 @@ _gwt_refresh_trees() {
 
     # so our base directory is:
     _gwt_bare=${wtl[1]#* }
+
+    [[ -z ${_gwt_default_branch} ]] && _gwt_get_default_branch
     # shift bare out of the way
     wtl=("${wtl[@]:2}")
 
@@ -68,11 +68,18 @@ _gwt_get_cwt() {
 
 _gwt_git_default_branch() {
     git remote show origin | awk '/HEAD/ { print $NF}'
-} # && typeset -f bc::cache > /dev/null && bc::cache _gwt_git_default_branch 7d 1d _gwt_bare _gwt_trees
+}
 
-# slightly annoying, but it is what is output not what it does that we need to cache
 _gwt_get_default_branch() {
+    local cache_file=${_gwt_bare:?_gwt_bare not set}/.gwt_default_branch
+
+    if [[ -f ${cache_file} ]]; then
+        declare -gx _gwt_default_branch=$(< ${cache_file})
+        return 0
+    fi
+
     declare -gx _gwt_default_branch=$(_gwt_git_default_branch)
+    [[ -n ${_gwt_default_branch} ]] && echo ${_gwt_default_branch} > ${cache_file}
 }
 
 # this populates env vars used by the various commands
@@ -453,6 +460,7 @@ function _gwtsub_clone() {
     cd "${dest}" || return $?
 
     git config --add remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+    _gwt_bare=${PWD}
     _gwt_get_default_branch
     # shellcheck disable=SC2210
     [[ -z ${_gwt_default_branch} ]] && {
@@ -462,6 +470,8 @@ function _gwtsub_clone() {
 
     git worktree add ./${_gwt_default_branch} ${_gwt_default_branch} \
         && cd ${_gwt_default_branch} || return $?
+    git fetch
+    git branch --set-upstream-to=origin/${_gwt_default_branch} ${_gwt_default_branch}
 }
 
 _gwt_run_command_in_another_tree() { # command remote-worktree args...

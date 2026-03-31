@@ -12,8 +12,8 @@ fi
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$PATH
 
-#home fzf?
-[[ -d /opt/homebrew/opt/fzf ]] && export FZF_BASE=/opt/homebrew/opt/fzf
+# fzf — sourced directly instead of OMZ plugin (saves ~150ms)
+export FZF_BASE=/opt/homebrew/opt/fzf
 
 ##znap
 [[ -r ~/.zsh/znap/znap.zsh ]] ||
@@ -85,51 +85,46 @@ HIST_STAMPS="yyyy-mm-dd"
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
 
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
+# Skip compaudit permission checks (~34ms)
+ZSH_DISABLE_COMPFIX=true
+
+# Plugins — trimmed from 29 to 18
+# Removed: kops minikube lpass mosh (not installed)
+#          branch (p10k shows branch), gitfast (redundant with git)
+#          colorize command-not-found node vim-interaction (rarely/never used)
 plugins=(
     argocd
     aws
-    branch
     colored-man-pages
-    colorize
-    command-not-found
     copypath
     copyfile
     dircycle
     dirhistory
     docker
     docker-compose
-    fzf
     gh
     git
-    gitfast
     gcloud
     golang
     helm
     history-substring-search
-    kops
     kubectl
     kubectx
-    lpass
     macos
-    minikube
-    mosh
-    node
     npm
     ssh
     ssh-agent
     sudo
     terraform
     urltools
-    vim-interaction
     vi-mode
 )
 
 source $ZSH/oh-my-zsh.sh
+
+# fzf key bindings and completion (direct source, bypasses OMZ plugin overhead)
+source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+source /opt/homebrew/opt/fzf/shell/completion.zsh
 
 # User configuration
 
@@ -170,8 +165,8 @@ bindkey "^[[1;3C" forward-word
 bindkey "^[[1;3D" backward-word
 
 # google gcloud sdk etc
-if [ -f '~/google-cloud-sdk/path.zsh.inc' ]; then . '~/google-cloud-sdk/path.zsh.inc'; fi
-if [ -f '~/google-cloud-sdk/completion.zsh.inc' ]; then . '~/google-cloud-sdk/completion.zsh.inc'; fi
+if [[ -f ~/google-cloud-sdk/path.zsh.inc ]]; then source ~/google-cloud-sdk/path.zsh.inc; fi
+if [[ -f ~/google-cloud-sdk/completion.zsh.inc ]]; then source ~/google-cloud-sdk/completion.zsh.inc; fi
 
 # Loki/logcli
 #[[ -r ~/.ssh/LOKI_SECRET.sh ]] && source ~/.ssh/LOKI_SECRET.sh
@@ -191,15 +186,13 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 alias kx=kubectx
 alias L=~/launcher/bin/launcher
 alias diff='diff -u'
+alias wdid='cd ~/wdid; claude --dangerously-skip-permissions /daily-summary'
 
 # functions
 source ~/.zsh/gwt
 
 [[ -z $GHOSTTY_SHELL_FEATURES ]] && \
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
-# completion bits
-type k9s >/dev/null && source <(k9s completion zsh)
 
 # functions
 
@@ -226,9 +219,15 @@ type jira >/dev/null && \
 #source <(jira completion zsh)
 test -e ~/.ssh/jira-token.sh && source ~/.ssh/jira-token.sh
 
+# mise...
+[[ $(realpath /opt/homebrew/bin/mise) -nt ~/.zsh/mise ]] && {
+    mise activate zsh > ~/.zsh/mise
+    touch -r $(realpath /opt/homebrew/bin/mise) ~/.zsh/mise
+}
 [[ -r ~/.zsh/mise ]] && source ~/.zsh/mise
-export MISE_GITHUB_TOKEN=$(< ~/.ssh/github.mise.token)
 
+# we ought to do secrets here
+source ~/.zshsecrets
 
 #homebrew completion
 #gnu tools from brew
@@ -237,12 +236,26 @@ export MISE_GITHUB_TOKEN=$(< ~/.ssh/github.mise.token)
 # prefer brew bits over system
 typeset -U PATH
 export PATH="/opt/workbrew/bin:/opt/homebrew/bin:$PATH"
-if type brew &>/dev/null
-then
-    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
-fi
+FPATH="/opt/homebrew/share/zsh/site-functions:${FPATH}"
+[[ -d ~/.zsh/completions ]] && FPATH=~/.zsh/completions:${FPATH}
 # add uvx stuff
 export PATH=$PATH:~/.local/bin
 alias brew=/opt/workbrew/bin/brew
+
+# completion bits — cached to avoid subprocess on every startup
+_cache_completion() {
+    local cmd=$1 cache=~/.zsh/completions/_${cmd}
+    if type ${cmd} >/dev/null 2>&1; then
+        if [[ ! -f ${cache} || $(realpath $(whence -p ${cmd})) -nt ${cache} ]]; then
+            mkdir -p ~/.zsh/completions
+            ${cmd} completion zsh > ${cache} 2>/dev/null
+        fi
+        source ${cache}
+    fi
+}
+_cache_completion k9s
+_cache_completion egctl
+_cache_completion up-log
+
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform
