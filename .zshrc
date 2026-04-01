@@ -244,7 +244,9 @@ alias brew=/opt/workbrew/bin/brew
 
 # completion bits — cached to avoid subprocess on every startup
 _cache_completion() {
-    local cmd=$1 cache=~/.zsh/completions/_${cmd}
+    local cmd cache=
+    cmd=$1
+    cache=~/.zsh/completions/_${cmd}
     if type ${cmd} >/dev/null 2>&1; then
         if [[ ! -f ${cache} || $(realpath $(whence -p ${cmd})) -nt ${cache} ]]; then
             mkdir -p ~/.zsh/completions
