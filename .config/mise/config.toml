@@ -2,7 +2,6 @@
 argocd = "3.1"
 aws = "latest"
 gh = "latest"
-go-jira = "latest"
 grpcurl = "latest"
 helm = "3.18"
 jq = "latest"
@@ -23,7 +22,8 @@ vault = "1.15"
 vim = "9.2.0045" # pinned — asdf plugin broken with Artifactory proxy
 yq = "latest"
 node = "latest"
-# jira-cli and k8sgpt fail due to Artifactory proxy 401 — keep on brew
+"ubi:envoyproxy/gateway" = { version = "latest", exe = "egctl" }
+"github:up-platform-infrastructure/up-log" = { version = "latest", api_url = "https://git.drwholdings.com/api/v3" }
 
 [settings]
 trusted_config_paths = ["~/src"]
