@@ -257,16 +257,27 @@ function _gwtsub_branch() { # branch
     [[ -r .pre-commit-config.yaml ]] && typeset -f pre-commit > /dev/null && pre-commit install
 }
 
-_gwt_help[newbranch]='creates a new git worktree using <cc> and <jira>'
-function _gwtsub_newbranch() { # cc_type JIRA
+_gwt_help[newbranch]='creates a new git worktree using <cc> [jira] [description]'
+function _gwtsub_newbranch() { # cc_type [JIRA] [description]
     local cc_type=${1?Missing conventional commit type}
-    local jira=${2?Missing JIRA ticket}
-    local branch directory
-    if [[ -z $3 ]]; then
-        read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issue_description ${jira})")
-    else
-        directory="${cc_type}-${jira}-$3"
+    shift
+    local jira="" branch directory
+
+    if [[ $1 =~ ^[A-Z]+-[0-9]+$ ]]; then
+        jira=$1
+        shift
+        if [[ -z $1 ]]; then
+            read -r branch directory < <(_gwt_jira_description2branch_directory ${cc_type} ${jira} "$(_gwt_jira_issue_description ${jira})")
+        else
+            directory="${cc_type}-${jira}-$1"
+            branch=${USER}/${directory}
+        fi
+    elif [[ -n $1 ]]; then
+        directory="${cc_type}-$1"
         branch=${USER}/${directory}
+    else
+        echo "gwt newbranch: ERROR needs a JIRA ticket or description" >&2
+        return 1
     fi
 
     #typeset -p cc_type jira branch directory
@@ -300,13 +311,19 @@ function _gwtsub_newbranch() { # cc_type JIRA
 _gwt_comp_newbranch() {
     _arguments \
         ':commit type:( ${_gwt_commit_type[*]} )' \
-        ':jira issue:{_gwt_jira_issue_comp}'
+        '::jira issue or description:{_gwt_jira_issue_comp}'
 }
 
-_git_set_commit_message() { # conventional-commit-type jira-ticket
-    cat > .gitmessage << GITMESSAGE
-${1:-feat}: ${2:-UPPI} ####SUBJECT WHAT####
+_git_set_commit_message() { # conventional-commit-type [jira-ticket]
+    if [[ -n $2 ]]; then
+        cat > .gitmessage << GITMESSAGE
+${1:-feat}: ${2} ####SUBJECT WHAT####
 GITMESSAGE
+    else
+        cat > .gitmessage << GITMESSAGE
+${1:-feat}: ####SUBJECT WHAT####
+GITMESSAGE
+    fi
     git config commit.template .gitmessage
 }
 
