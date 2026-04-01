@@ -256,6 +256,7 @@ _cache_completion() {
 _cache_completion k9s
 _cache_completion egctl
 _cache_completion up-log
+_cache_completion mise
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /opt/homebrew/bin/terraform terraform
