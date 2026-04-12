@@ -38,22 +38,23 @@ print_prompt() {
     printf '%s%s: %s' ${_defc} ${_uq_fg_red3} "${_PROMPT_EXIT}"
     printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
     printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
-    printf '%s %s %s ' $(date +T%H:%M:%S) ${inuse} ${_PROMPT_PATH}
+    printf 'T%(%H:%M:%S)T %s %s ' -1 "${inuse}" "${_PROMPT_PATH}"
     [[ $(type -t kube_ps1) == function ]] && printf '%s%s%s ' ${_defc} ${_uq_fg_purple} $(kube_ps1)
     printf ';'
     printf '%s%s\n' ${CLEAR_EOL} ${NO_COLOUR_UQ}
 }
 
 tmux_prompt() {
-    if [[ -n $TMUX ]]; then
+    if [[ -n $TMUX && $_tmux_ps_pane != "$TMUX_PANE" ]]; then
         _tmux_ps=$(tmux list-pane -F "#{session_name}:#{window_index}:#{pane_index}:#{pane_active}" |
-                    awk -F: ' $4 == 1 { session=$1 ":" $2; pindex=$3; } 
+                    awk -F: ' $4 == 1 { session=$1 ":" $2; pindex=$3; }
                             END     {
                                         if (NR > 1) {
                                             printf "%s:%d", session, pindex;
                                         } else {
                                             printf session; }
                                     }')
+        _tmux_ps_pane=$TMUX_PANE
     fi
 }
 

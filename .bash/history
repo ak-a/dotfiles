@@ -147,7 +147,7 @@ prompt_history() {
 
 declare -xf prompt_history history_merge_at_shell_exit history_merge
 
-cat <<CONF > $HISTARCHIVE/logrotate.conf
+[[ -r $HISTARCHIVE/logrotate.conf ]] || cat <<CONF > $HISTARCHIVE/logrotate.conf
 $HISTARCHIVE/merged {
     rotate 10
     nocompress

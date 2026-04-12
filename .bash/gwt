@@ -189,8 +189,8 @@ function join_by {
     echo "$*"
 }
 
-readarray -t _git_emojis < ~/.git-emoji
-readarray -t _gwt_commit < <(sort ~/.conventional-commit)
+[[ -r ~/.git-emoji ]] && readarray -t _git_emojis < ~/.git-emoji
+[[ -r ~/.conventional-commit ]] && readarray -t _gwt_commit < <(sort ~/.conventional-commit)
 _gwt_commit_type=(${_gwt_commit[@]%% *})
 _gwt_commit_type_re="($(join_by '|' "${_gwt_commit_type[@]}"))"
 
