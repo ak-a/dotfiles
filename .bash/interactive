@@ -35,7 +35,7 @@ _interactive_source_completions_by_command() {
         type -t ${_command} &> /dev/null || continue
 
         # do we have the completion already done?
-        complete | command grep -E -q -e "-F \w+ ${_command}\$" && continue
+        complete -p "${_command}" &>/dev/null && continue
 
         # so now we check the cache of the completion, generate if needed
         # and slurp it in

@@ -1,6 +1,6 @@
 #! /bin/bash
 
-if [[ "$(uname)" = "Linux" ]]; then
+if [[ "$OSTYPE" == linux* ]]; then
     mstat() { stat -c %Y "$1"; }
 else
     mstat() { perl -e "print ((stat('$1'))[9])"; }

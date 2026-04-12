@@ -39,7 +39,7 @@ print_prompt() {
     printf '%s %s%s %s %s' ${_defc} ${_uq_fg_red4} ${_tmux_ps} ${_shell_count} ${_uq_fg_purple}
     printf '%s%s%s ' ${_defc} ${_uq_fg_sandybrown} ${_PROMPT_CS}
     printf 'T%(%H:%M:%S)T %s %s ' -1 "${inuse}" "${_PROMPT_PATH}"
-    [[ $(type -t kube_ps1) == function ]] && printf '%s%s%s ' ${_defc} ${_uq_fg_purple} $(kube_ps1)
+    declare -F kube_ps1 > /dev/null && printf '%s%s%s ' ${_defc} ${_uq_fg_purple} $(kube_ps1)
     printf ';'
     printf '%s%s\n' ${CLEAR_EOL} ${NO_COLOUR_UQ}
 }
@@ -119,7 +119,7 @@ function prompt_command_timer()
 {
     local _exit_status=$?
     _command_duration=$((SECONDS-_PROMPT_TIMER))
-    [[ $(type -t prompt_history) == function ]] && prompt_history
+    declare -F prompt_history > /dev/null && prompt_history
     _PROMPT_CS=$(printf "%02d:%02d:%02d" $((_command_duration/60/60)) $((_command_duration/60%60)) $((_command_duration%60)))
     if [ $_exit_status == 0 ]; then
         _PROMPT_EXIT=$_PROMPT_EXIT_OK$(printf "%3d" $_exit_status)
@@ -127,7 +127,7 @@ function prompt_command_timer()
         _PROMPT_EXIT=$_PROMPT_EXIT_BAD$(printf "%3d" $_exit_status)
     fi
 
-    [[ $(type -t _bashrc_check_source_ood) == function ]] && _bashrc_check_source_ood
+    declare -F _bashrc_check_source_ood > /dev/null && _bashrc_check_source_ood
     if [[ ${_bashrc_ood[*]} ]]; then
         _PROMPT_OOD_BASHRCS="$_uq_fg_red3 rcood( ${_bashrc_ood[*]##*/} )$NO_COLOUR_UQ "
     else

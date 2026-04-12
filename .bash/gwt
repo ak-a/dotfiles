@@ -506,7 +506,6 @@ _gwt_build_complete_help() {
 [[ -z ${_gwt_remote_commands} ]] && declare -garx _gwt_remote_commands=(find grep)
 [[ -z ${_gwt_commands} ]] && declare -garx _gwt_commands=($(typeset -F | sed -ne '/ _gwtsub_/s/.*_gwtsub_//p') "${_gwt_remote_commands[@]}" "${_gwt_no_wt_commands[@]}")
 [[ ${#_gwt_aliases[*]} -gt 0 ]] || declare -Agrx _gwt_aliases=([ls]="list" [rm]="remove")
-_gwtsub_refresh 2> /dev/null
 declare -gax _gwt_complete_help
 _gwt_build_complete_help
 
