@@ -23,7 +23,10 @@ vim = "9.2.0045" # pinned — asdf plugin broken with Artifactory proxy
 yq = "latest"
 node = "latest"
 "ubi:envoyproxy/gateway" = { version = "latest", exe = "egctl" }
-"github:up-platform-infrastructure/up-log" = { version = "latest", api_url = "https://git.drwholdings.com/api/v3" }
+"github:up-platform-infrastructure/up-log" = { version = "1.1.1", api_url = "https://git.drwholdings.com/api/v3", exe = "up-log", verify_attestation = false }
 
 [settings]
 trusted_config_paths = ["~/src"]
+
+[settings.github]
+github_attestations = false
