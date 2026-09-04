@@ -87,7 +87,7 @@ _gwt_get_default_branch() {
 # shellcheck disable=SC2154
 _gwt_help[refresh]='refresh of worktree trees etc.'
 _gwtsub_refresh() {
-    set -o pipefail
+    setopt local_options pipefail
 
     # either we haven't initialised yet or we are now in a different git
     [[ -n ${_gwt_bare} && ${PWD} =~ ^${_gwt_bare} ]] || {
@@ -305,7 +305,7 @@ function _gwtsub_newbranch() { # cc_type [JIRA] [description]
     _git_set_commit_message ${cc_type} ${jira}
 
     # if we have done a claude /init before then lets give claude a few clues
-    [[ -r ../CLAUDE.md && ! -r CLAUDE.md ]] && ln../CLAUDE.md .
+    [[ -r ../CLAUDE.md && ! -r CLAUDE.md ]] && ln ../CLAUDE.md .
 }
 
 _gwt_comp_newbranch() {
