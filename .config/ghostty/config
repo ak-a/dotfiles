@@ -51,7 +51,9 @@ copy-on-select = clipboard
 cursor-color = #00ff7f
 #adjust-cursor-thickness = 2
 cursor-opacity = 1
+cursor-style = block
 cursor-style-blink = true
+shell-integration-features = no-cursor
 cursor-text = #7f00ff
 font-family = "DejaVuSansM Nerd Font Mono"
 keybind = shift+insert=paste_from_clipboard
