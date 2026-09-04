@@ -225,6 +225,7 @@ test -e ~/.ssh/jira-token.sh && source ~/.ssh/jira-token.sh
     touch -r $(realpath /opt/homebrew/bin/mise) ~/.zsh/mise
 }
 [[ -r ~/.zsh/mise ]] && source ~/.zsh/mise
+[[ -r ~/.zsh/mise-upgrade-reminder ]] && source ~/.zsh/mise-upgrade-reminder
 
 # we ought to do secrets here
 source ~/.zshsecrets

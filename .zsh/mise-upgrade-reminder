@@ -1,0 +1,36 @@
+_mise_upgrade_reminder() {
+    [[ -o interactive ]] || return
+    [[ -n ${MISE_UPGRADE_REMINDER_DISABLE:-} ]] && return
+    [[ ${MISE_UPGRADE_REMINDER_SHOWN:-0} == 1 ]] && return
+    export MISE_UPGRADE_REMINDER_SHOWN=1
+
+    local interval_days=${MISE_UPGRADE_REMINDER_INTERVAL_DAYS:-7}
+    [[ ${interval_days} == <-> ]] || interval_days=7
+
+    local state_dir=${XDG_STATE_HOME:-${HOME}/.local/state}/mise
+    local stamp=${state_dir}/upgrade-reminder
+    local now last threshold
+
+    now=$(date +%s) || return
+    if [[ -r ${stamp} ]]; then
+        last=$(<${stamp})
+        [[ ${last} == <-> ]] || last=0
+    else
+        last=0
+    fi
+
+    threshold=$(( interval_days * 86400 ))
+    (( now - last >= threshold )) || return
+
+    mkdir -p ${state_dir} 2>/dev/null || return
+    print -r -- ${now} >| ${stamp} 2>/dev/null || return
+
+    if (( ${+commands[mise-upgrades]} )); then
+        print -P "%F{yellow}mise tool updates may be available. Run: mise-upgrades%f"
+    else
+        print -P "%F{yellow}mise tool updates may be available. Run: mise outdated --bump%f"
+    fi
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _mise_upgrade_reminder
